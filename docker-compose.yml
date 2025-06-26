@@ -45,8 +45,8 @@ services:
   # Backend .NET 8 API
   backend:
     build:
-      context: ./src/AcervoEducacional.WebApi
-      dockerfile: Dockerfile
+      context: ./src
+      dockerfile: AcervoEducacional.WebApi/Dockerfile
     container_name: acervo_backend
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
