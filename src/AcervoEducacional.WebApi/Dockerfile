@@ -5,19 +5,19 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copiar arquivos de projeto na ordem correta (dependências primeiro)
-COPY ["AcervoEducacional.Domain/AcervoEducacional.Domain.csproj", "AcervoEducacional.Domain/"]
-COPY ["AcervoEducacional.Application/AcervoEducacional.Application.csproj", "AcervoEducacional.Application/"]
-COPY ["AcervoEducacional.Infrastructure/AcervoEducacional.Infrastructure.csproj", "AcervoEducacional.Infrastructure/"]
-COPY ["AcervoEducacional.WebApi/AcervoEducacional.WebApi.csproj", "AcervoEducacional.WebApi/"]
+COPY ["src/AcervoEducacional.Domain/AcervoEducacional.Domain.csproj", "AcervoEducacional.Domain/"]
+COPY ["src/AcervoEducacional.Application/AcervoEducacional.Application.csproj", "AcervoEducacional.Application/"]
+COPY ["src/AcervoEducacional.Infrastructure/AcervoEducacional.Infrastructure.csproj", "AcervoEducacional.Infrastructure/"]
+COPY ["src/AcervoEducacional.WebApi/AcervoEducacional.WebApi.csproj", "AcervoEducacional.WebApi/"]
 
 # Restaurar dependências
 RUN dotnet restore "AcervoEducacional.WebApi/AcervoEducacional.WebApi.csproj"
 
 # Copiar todo o código fonte
-COPY AcervoEducacional.Domain/ AcervoEducacional.Domain/
-COPY AcervoEducacional.Application/ AcervoEducacional.Application/
-COPY AcervoEducacional.Infrastructure/ AcervoEducacional.Infrastructure/
-COPY AcervoEducacional.WebApi/ AcervoEducacional.WebApi/
+COPY src/AcervoEducacional.Domain/ AcervoEducacional.Domain/
+COPY src/AcervoEducacional.Application/ AcervoEducacional.Application/
+COPY src/AcervoEducacional.Infrastructure/ AcervoEducacional.Infrastructure/
+COPY src/AcervoEducacional.WebApi/ AcervoEducacional.WebApi/
 
 # Build da aplicação
 WORKDIR "/src/AcervoEducacional.WebApi"
