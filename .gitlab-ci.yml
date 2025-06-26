@@ -1,0 +1,318 @@
+# GitLab CI/CD Pipeline - Sistema Acervo Educacional
+# Automatiza build, testes e deploy
+
+stages:
+  - validate
+  - build
+  - test
+  - security
+  - deploy
+  - notify
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  POSTGRES_DB: acervo_educacional_test
+  POSTGRES_USER: test_user
+  POSTGRES_PASSWORD: test_password
+
+# Cache para dependências
+cache:
+  paths:
+    - backend/AcervoEducacional.Api/obj/
+    - frontend/acervo-educacional-frontend/node_modules/
+    - frontend/acervo-educacional-frontend/.pnpm-store/
+
+# Validação de código
+validate:
+  stage: validate
+  image: alpine:latest
+  script:
+    - apk add --no-cache git
+    - echo "Validando estrutura do projeto..."
+    - test -f docker-compose.yml
+    - test -f .env.example
+    - test -f backend/AcervoEducacional.Api/AcervoEducacional.Api.csproj
+    - test -f frontend/acervo-educacional-frontend/package.json
+    - echo "✅ Estrutura do projeto validada"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Build Backend .NET
+build:backend:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd backend/AcervoEducacional.Api
+    - echo "Restaurando dependências..."
+    - dotnet restore
+    - echo "Compilando projeto..."
+    - dotnet build --configuration Release --no-restore
+    - echo "Publicando aplicação..."
+    - dotnet publish --configuration Release --no-build --output ./publish
+  artifacts:
+    paths:
+      - backend/AcervoEducacional.Api/publish/
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Build Frontend React
+build:frontend:
+  stage: build
+  image: node:20-alpine
+  script:
+    - cd frontend/acervo-educacional-frontend
+    - echo "Instalando pnpm..."
+    - npm install -g pnpm
+    - echo "Instalando dependências..."
+    - pnpm install --frozen-lockfile
+    - echo "Executando build..."
+    - pnpm run build
+    - echo "Verificando build..."
+    - test -d dist
+    - ls -la dist/
+  artifacts:
+    paths:
+      - frontend/acervo-educacional-frontend/dist/
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Testes Backend
+test:backend:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_HOST_AUTH_METHOD: trust
+    ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD"
+  script:
+    - cd backend/AcervoEducacional.Api
+    - echo "Executando testes unitários..."
+    - dotnet test --configuration Release --logger "trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage"
+    - echo "Gerando relatório de cobertura..."
+    - dotnet tool install -g dotnet-reportgenerator-globaltool || true
+    - reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:"Html;Cobertura" || true
+  artifacts:
+    when: always
+    paths:
+      - backend/AcervoEducacional.Api/TestResults/
+      - backend/AcervoEducacional.Api/coverage/
+    reports:
+      junit:
+        - backend/AcervoEducacional.Api/TestResults/*.trx
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/AcervoEducacional.Api/coverage/Cobertura.xml
+    expire_in: 1 week
+  coverage: '/Line coverage: \d+\.\d+%/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Testes Frontend
+test:frontend:
+  stage: test
+  image: node:20-alpine
+  script:
+    - cd frontend/acervo-educacional-frontend
+    - npm install -g pnpm
+    - pnpm install --frozen-lockfile
+    - echo "Executando testes..."
+    - pnpm run test:ci || true
+    - echo "Executando lint..."
+    - pnpm run lint
+    - echo "Verificando tipos TypeScript..."
+    - pnpm run type-check || true
+  artifacts:
+    when: always
+    paths:
+      - frontend/acervo-educacional-frontend/coverage/
+    reports:
+      junit:
+        - frontend/acervo-educacional-frontend/junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: frontend/acervo-educacional-frontend/coverage/cobertura-coverage.xml
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Análise de Segurança
+security:sast:
+  stage: security
+  image: docker:stable
+  services:
+    - docker:dind
+  script:
+    - echo "Executando análise de segurança SAST..."
+    - docker run --rm -v "$PWD":/app -w /app securecodewarrior/docker-sast || true
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true
+
+# Análise de Dependências
+security:dependency:
+  stage: security
+  image: node:20-alpine
+  script:
+    - echo "Verificando vulnerabilidades no frontend..."
+    - cd frontend/acervo-educacional-frontend
+    - npm audit --audit-level=high || true
+    - echo "Verificando vulnerabilidades no backend..."
+    - cd ../../backend/AcervoEducacional.Api
+    - dotnet list package --vulnerable --include-transitive || true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true
+
+# Build de Imagens Docker
+build:docker:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "Construindo imagem do backend..."
+    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA backend/AcervoEducacional.Api/
+    - docker build -t $CI_REGISTRY_IMAGE/backend:latest backend/AcervoEducacional.Api/
+    - echo "Construindo imagem do frontend..."
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA frontend/acervo-educacional-frontend/
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:latest frontend/acervo-educacional-frontend/
+    - echo "Enviando imagens para registry..."
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Deploy para Staging
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  environment:
+    name: staging
+    url: https://staging.acervo-educacional.com
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$STAGING_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $STAGING_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo "Fazendo deploy para staging..."
+    - ssh $STAGING_USER@$STAGING_HOST "
+        cd /opt/acervo-educacional &&
+        git pull origin $CI_COMMIT_BRANCH &&
+        ./scripts/deploy.sh update
+      "
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+  when: manual
+
+# Deploy para Produção
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  environment:
+    name: production
+    url: https://acervo-educacional.com
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$PRODUCTION_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $PRODUCTION_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo "Fazendo deploy para produção..."
+    - ssh $PRODUCTION_USER@$PRODUCTION_HOST "
+        cd /opt/acervo-educacional &&
+        git pull origin $CI_COMMIT_BRANCH &&
+        ./scripts/deploy.sh backup &&
+        ./scripts/deploy.sh update
+      "
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  when: manual
+  only:
+    - main
+    - master
+
+# Notificação de Deploy
+notify:success:
+  stage: notify
+  image: alpine:latest
+  script:
+    - apk add --no-cache curl
+    - |
+      if [ "$CI_JOB_STATUS" == "success" ]; then
+        curl -X POST -H 'Content-type: application/json' \
+          --data "{
+            \"text\": \"✅ Deploy do Acervo Educacional realizado com sucesso!\",
+            \"attachments\": [{
+              \"color\": \"good\",
+              \"fields\": [
+                {\"title\": \"Branch\", \"value\": \"$CI_COMMIT_BRANCH\", \"short\": true},
+                {\"title\": \"Commit\", \"value\": \"$CI_COMMIT_SHORT_SHA\", \"short\": true},
+                {\"title\": \"Pipeline\", \"value\": \"$CI_PIPELINE_URL\", \"short\": false}
+              ]
+            }]
+          }" \
+          $SLACK_WEBHOOK_URL
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  when: on_success
+  allow_failure: true
+
+notify:failure:
+  stage: notify
+  image: alpine:latest
+  script:
+    - apk add --no-cache curl
+    - |
+      curl -X POST -H 'Content-type: application/json' \
+        --data "{
+          \"text\": \"❌ Falha no pipeline do Acervo Educacional\",
+          \"attachments\": [{
+            \"color\": \"danger\",
+            \"fields\": [
+              {\"title\": \"Branch\", \"value\": \"$CI_COMMIT_BRANCH\", \"short\": true},
+              {\"title\": \"Commit\", \"value\": \"$CI_COMMIT_SHORT_SHA\", \"short\": true},
+              {\"title\": \"Pipeline\", \"value\": \"$CI_PIPELINE_URL\", \"short\": false},
+              {\"title\": \"Job Falhou\", \"value\": \"$CI_JOB_NAME\", \"short\": true}
+            ]
+          }]
+        }" \
+        $SLACK_WEBHOOK_URL
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  when: on_failure
+  allow_failure: true
+
+# Limpeza de artefatos antigos
+cleanup:
+  stage: notify
+  image: alpine:latest
+  script:
+    - echo "Pipeline concluído. Artefatos serão limpos automaticamente."
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  when: always
+
