@@ -136,16 +136,13 @@ builder.Services.AddFluentValidationServices();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Swagger disponível em qualquer ambiente
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acervo Educacional API v1");
-        c.RoutePrefix = string.Empty; // Swagger na raiz
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acervo Educacional API v1");
+    c.RoutePrefix = "swagger"; // acessível em /swagger
+});
 
 // Middleware
 app.UseMiddleware<ExceptionMiddleware>();
