@@ -12,7 +12,7 @@ using AcervoEducacional.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Serilog Configuration
+// Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -22,11 +22,19 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add services to the container
+// Forçar todas as URLs e parâmetros de query a serem gerados em letras minúsculas,
+// garantindo consistência nas rotas e compatibilidade com ferramentas como o Swagger
+builder.Services.Configure<RouteOptions>(options =>
+{
+    options.LowercaseUrls = true;
+    options.LowercaseQueryStrings = true;
+});
+
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger Configuration
+// Swagger com segurança, casing e estilo visual
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -64,9 +72,12 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
+    //c.DocumentFilter<LowercaseDocumentFilter>();
+    c.CustomSchemaIds(type => type.FullName);
 });
 
-// JWT Authentication
+// JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"];
 
@@ -108,11 +119,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Infrastructure Services
+// Serviços da aplicação
 builder.Services.AddInfrastructure(builder.Configuration);
-
-// Application Services
 builder.Services.AddApplicationServices();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddFluentValidationServices();
 
 // Hangfire
 builder.Services.AddHangfire(configuration => configuration
@@ -128,26 +139,30 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!)
     .AddCheck("hangfire", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
 
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
-
-// FluentValidation
-builder.Services.AddFluentValidationServices();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// 🔒 Protege Swagger com autenticação básica fora de dev
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acervo Educacional API v1");
-        c.RoutePrefix = string.Empty; // Swagger na raiz
-    });
+    app.UseMiddleware<SwaggerBasicAuthMiddleware>();
 }
 
-// Middleware
+// Swagger visual melhorado
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acervo Educacional API v1");
+    c.RoutePrefix = "swagger";
+    c.HeadContent = @"
+        <style>
+            body, pre, code {
+                font-family: Consolas, monospace !important;
+                font-size: 13px !important;
+            }
+        </style>";
+});
+
+// Middlewares
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
@@ -157,7 +172,7 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Hangfire Dashboard
+// Hangfire
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     Authorization = new[] { new HangfireAuthorizationFilter() }
@@ -176,19 +191,19 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Seed Data
+// Seed
 await app.SeedDataAsync();
 
-// Recurring Jobs
+// Jobs recorrentes
 RecurringJob.AddOrUpdate<IAuthService>(
     "cleanup-expired-tokens",
     service => service.LimparSessoesExpiradasAsync(),
-    Cron.Daily(2)); // 2:00 AM daily
+    Cron.Daily(2));
 
 RecurringJob.AddOrUpdate<IAuthService>(
     "cleanup-expired-recovery-tokens",
     service => service.LimparTokensExpiradosAsync(),
-    Cron.Daily(2, 30)); // 2:30 AM daily
+    Cron.Daily(2, 30));
 
 try
 {

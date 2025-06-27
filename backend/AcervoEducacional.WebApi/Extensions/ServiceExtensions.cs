@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Hangfire.Dashboard;
@@ -38,66 +39,78 @@ public static class ServiceExtensions
         using var scope = app.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AcervoEducacionalContext>();
 
-        // Seed Admin User
-        if (!context.Usuarios.Any())
+        try
         {
-            var adminUser = new Usuario
-            {
-                Nome = "Administrador",
-                Email = "admin@acervo.com",
-                SenhaHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
-                IsAdmin = true,
-                IsAtivo = true
-            };
+            // Executar as migrações automaticamente
+            await context.Database.MigrateAsync();
 
-            context.Usuarios.Add(adminUser);
-            await context.SaveChangesAsync();
+            // Seed Admin User
+            if (!context.Usuarios.Any())
+            {
+                var adminUser = new Usuario
+                {
+                    Nome = "Administrador",
+                    Email = "admin@acervo.com",
+                    SenhaHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                    IsAdmin = true,
+                    IsAtivo = true
+                };
+
+                context.Usuarios.Add(adminUser);
+                await context.SaveChangesAsync();
+                Console.WriteLine("[SeedData] Usuário administrador criado com sucesso.");
+            }
+
+            // Seed System Configurations
+            if (!context.ConfiguracoesSistema.Any())
+            {
+                var configs = new[]
+                {
+                    new ConfiguracaoSistema
+                    {
+                        Chave = "sistema.nome",
+                        Valor = "Acervo Educacional",
+                        Descricao = "Nome do sistema",
+                        Categoria = "Sistema"
+                    },
+                    new ConfiguracaoSistema
+                    {
+                        Chave = "sistema.versao",
+                        Valor = "1.0.0",
+                        Descricao = "Versão do sistema",
+                        Categoria = "Sistema"
+                    },
+                    new ConfiguracaoSistema
+                    {
+                        Chave = "senior.sync.enabled",
+                        Valor = "true",
+                        Descricao = "Habilitar sincronização com Senior",
+                        Categoria = "Senior"
+                    },
+                    new ConfiguracaoSistema
+                    {
+                        Chave = "senior.sync.cron",
+                        Valor = "0 2 * * *",
+                        Descricao = "Expressão cron para sincronização automática",
+                        Categoria = "Senior"
+                    },
+                    new ConfiguracaoSistema
+                    {
+                        Chave = "arquivos.tamanho.maximo",
+                        Valor = "524288000",
+                        Descricao = "Tamanho máximo de arquivo em bytes (500MB)",
+                        Categoria = "Arquivos"
+                    }
+                };
+
+                context.ConfiguracoesSistema.AddRange(configs);
+                await context.SaveChangesAsync();
+                Console.WriteLine("[SeedData] Configurações de sistema criadas com sucesso.");
+            }
         }
-
-        // Seed System Configurations
-        if (!context.ConfiguracoesSistema.Any())
+        catch (Exception ex)
         {
-            var configs = new[]
-            {
-                new ConfiguracaoSistema
-                {
-                    Chave = "sistema.nome",
-                    Valor = "Acervo Educacional",
-                    Descricao = "Nome do sistema",
-                    Categoria = "Sistema"
-                },
-                new ConfiguracaoSistema
-                {
-                    Chave = "sistema.versao",
-                    Valor = "1.0.0",
-                    Descricao = "Versão do sistema",
-                    Categoria = "Sistema"
-                },
-                new ConfiguracaoSistema
-                {
-                    Chave = "senior.sync.enabled",
-                    Valor = "true",
-                    Descricao = "Habilitar sincronização com Senior",
-                    Categoria = "Senior"
-                },
-                new ConfiguracaoSistema
-                {
-                    Chave = "senior.sync.cron",
-                    Valor = "0 2 * * *",
-                    Descricao = "Expressão cron para sincronização automática",
-                    Categoria = "Senior"
-                },
-                new ConfiguracaoSistema
-                {
-                    Chave = "arquivos.tamanho.maximo",
-                    Valor = "524288000",
-                    Descricao = "Tamanho máximo de arquivo em bytes (500MB)",
-                    Categoria = "Arquivos"
-                }
-            };
-
-            context.ConfiguracoesSistema.AddRange(configs);
-            await context.SaveChangesAsync();
+            Console.WriteLine($"[SeedData] Erro ao executar seed de dados: {ex.Message}");
         }
     }
 }
