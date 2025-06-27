@@ -116,7 +116,7 @@ install() {
             elif command -v yarn >/dev/null 2>&1; then
                 yarn install
             else
-                npm install
+                npm install --legacy-peer-deps
             fi
         fi
         cd ../..
