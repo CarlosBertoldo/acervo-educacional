@@ -13,8 +13,8 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Application Services - Implementar conforme necessário
-        // services.AddScoped<IAuthService, AuthService>();
+        // Application Services
+        services.AddScoped<IAuthService, AcervoEducacional.Application.Services.AuthService>();
         // services.AddScoped<IUsuarioService, UsuarioService>();
         // services.AddScoped<ICursoService, CursoService>();
         // services.AddScoped<IArquivoService, ArquivoService>();

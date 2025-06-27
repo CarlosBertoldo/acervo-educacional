@@ -50,15 +50,15 @@ export const AuthProvider = ({ children }) => {
       const response = await apiService.login(email, password);
       
       if (response.success) {
-        const { token, refreshToken, user: userData } = response.data;
+        const { accessToken, refreshToken, usuario } = response.data;
         
         // Salvar dados no localStorage
-        localStorage.setItem('token', token);
+        localStorage.setItem('token', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(usuario));
         
         // Atualizar estado
-        setUser(userData);
+        setUser(usuario);
         setIsAuthenticated(true);
         
         return { success: true };

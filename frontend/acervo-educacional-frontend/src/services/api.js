@@ -51,48 +51,48 @@ class ApiService {
 
   // Métodos de autenticação
   async login(email, password) {
-    return this.request('/auth/login', {
+    return this.request('/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
   }
 
   async refreshToken(refreshToken) {
-    return this.request('/auth/refresh', {
+    return this.request('/v1/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     });
   }
 
   async forgotPassword(email) {
-    return this.request('/auth/forgot-password', {
+    return this.request('/v1/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
   }
 
   async resetPassword(token, newPassword, confirmPassword) {
-    return this.request('/auth/reset-password', {
+    return this.request('/v1/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify({ token, newPassword, confirmPassword }),
     });
   }
 
   async changePassword(currentPassword, newPassword, confirmPassword) {
-    return this.request('/auth/change-password', {
+    return this.request('/v1/auth/change-password', {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
     });
   }
 
   async logout() {
-    return this.request('/auth/logout', {
+    return this.request('/v1/auth/logout', {
       method: 'POST',
     });
   }
 
   async getCurrentUser() {
-    return this.request('/auth/me');
+    return this.request('/v1/auth/me');
   }
 
   // Métodos de cursos

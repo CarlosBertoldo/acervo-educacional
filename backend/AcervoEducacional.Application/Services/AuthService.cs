@@ -398,15 +398,15 @@ public class AuthService : IAuthService
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(GetJwtSecretKey());
-
-        var claims = new List<Claim>
+        
+        var claims = new[]
         {
-            new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new(ClaimTypes.Name, usuario.Nome),
-            new(ClaimTypes.Email, usuario.Email),
-            new("IsAdmin", usuario.IsAdmin.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+            new Claim("sub", usuario.Id.ToString()),
+            new Claim("name", usuario.Nome),
+            new Claim("email", usuario.Email),
+            new Claim("admin", usuario.IsAdmin.ToString().ToLower()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
