@@ -7,7 +7,7 @@ using AcervoEducacional.Application.Interfaces;
 namespace AcervoEducacional.WebApi.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;

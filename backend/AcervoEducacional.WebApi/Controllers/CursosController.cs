@@ -7,7 +7,7 @@ using AcervoEducacional.Application.Interfaces;
 namespace AcervoEducacional.WebApi.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/cursos")]
 [Authorize]
 public class CursosController : ControllerBase
 {
