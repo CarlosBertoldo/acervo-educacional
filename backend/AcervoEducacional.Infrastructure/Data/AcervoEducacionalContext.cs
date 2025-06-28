@@ -206,6 +206,43 @@ public class AcervoEducacionalContext : DbContext
             entity.HasIndex(e => e.Categoria);
         });
 
+        // Configurações de ConflitoCurso
+        modelBuilder.Entity<ConflitoCurso>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CodigoSenior).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TipoConflito).HasConversion<int>();
+            entity.Property(e => e.Resolucao).HasConversion<int?>();
+            entity.Property(e => e.Observacoes).HasMaxLength(1000);
+            
+            // Configuração para Dictionary como JSON
+            entity.Property(e => e.DadosLocal)
+                .HasConversion(
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
+                .HasColumnType("jsonb");
+                
+            entity.Property(e => e.DadosSenior)
+                .HasConversion(
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
+                .HasColumnType("jsonb");
+
+            entity.HasIndex(e => e.CursoId);
+            entity.HasIndex(e => e.CodigoSenior);
+            entity.HasIndex(e => e.IsResolvido);
+
+            entity.HasOne(e => e.Curso)
+                .WithMany()
+                .HasForeignKey(e => e.CursoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.ResolvidoPor)
+                .WithMany()
+                .HasForeignKey(e => e.ResolvidoPorId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
         // Configurar nomes de tabelas em snake_case
         modelBuilder.Entity<Usuario>().ToTable("usuarios");
         modelBuilder.Entity<Curso>().ToTable("cursos");

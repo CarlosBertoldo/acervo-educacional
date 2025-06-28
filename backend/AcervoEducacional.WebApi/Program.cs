@@ -126,7 +126,7 @@ builder.Services.AddApplicationServices();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationServices();
 
-// Hangfire - Temporariamente desabilitado para resolver problemas de conexão
+// Hangfire - Temporariamente desabilitado para resolver problemas
 // builder.Services.AddHangfire(configuration => configuration
 //     .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
 //     .UseSimpleAssemblyNameTypeSerializer()
@@ -148,7 +148,7 @@ if (!app.Environment.IsDevelopment())
     app.UseMiddleware<SwaggerBasicAuthMiddleware>();
 }
 
-// Swagger visual melhorado
+// Swagger com configuração corrigida
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -156,24 +156,21 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
     c.HeadContent = @"
         <style>
-            body, pre, code {
-                font-family: Consolas, monospace !important;
-                font-size: 13px !important;
+            .swagger-ui .info .title {
+                font-family: 'Barlow', sans-serif !important;
+                word-break: normal !important;
+                white-space: normal !important;
             }
-        </style>";
-});
-
-// Swagger visual melhorado
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acervo Educacional API v1");
-    c.RoutePrefix = "swagger";
-    c.HeadContent = @"
-        <style>
-            body, pre, code {
-                font-family: Consolas, monospace !important;
-                font-size: 13px !important;
+            .swagger-ui .scheme-container {
+                font-family: 'Barlow', sans-serif !important;
+            }
+            .swagger-ui .opblock .opblock-summary-path {
+                word-break: break-all !important;
+                white-space: normal !important;
+            }
+            .swagger-ui .parameter__name {
+                word-break: normal !important;
+                white-space: normal !important;
             }
         </style>";
 });
@@ -188,7 +185,7 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Hangfire - Temporariamente desabilitado
+// Hangfire Dashboard - Temporariamente desabilitado
 // app.UseHangfireDashboard("/hangfire", new DashboardOptions
 // {
 //     Authorization = new[] { new HangfireAuthorizationFilter() }
