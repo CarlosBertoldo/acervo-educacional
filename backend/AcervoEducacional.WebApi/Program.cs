@@ -126,14 +126,14 @@ builder.Services.AddApplicationServices();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationServices();
 
-// Hangfire
-builder.Services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Hangfire - Temporariamente desabilitado para resolver problemas de conexão
+// builder.Services.AddHangfire(configuration => configuration
+//     .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+//     .UseSimpleAssemblyNameTypeSerializer()
+//     .UseRecommendedSerializerSettings()
+//     .UsePostgreSqlStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHangfireServer();
+// builder.Services.AddHangfireServer();
 
 // Health Checks
 builder.Services.AddHealthChecks()
@@ -188,11 +188,11 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Hangfire
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = new[] { new HangfireAuthorizationFilter() }
-});
+// Hangfire - Temporariamente desabilitado
+// app.UseHangfireDashboard("/hangfire", new DashboardOptions
+// {
+//     Authorization = new[] { new HangfireAuthorizationFilter() }
+// });
 
 app.MapControllers();
 app.MapHealthChecks("/health");
@@ -210,16 +210,16 @@ using (var scope = app.Services.CreateScope())
 // Seed
 await app.SeedDataAsync();
 
-// Jobs recorrentes
-RecurringJob.AddOrUpdate<IAuthService>(
-    "cleanup-expired-tokens",
-    service => service.LimparSessoesExpiradasAsync(),
-    Cron.Daily(2));
+// Jobs recorrentes - Temporariamente desabilitados
+// RecurringJob.AddOrUpdate<IAuthService>(
+//     "cleanup-expired-tokens",
+//     service => service.LimparSessoesExpiradasAsync(),
+//     Cron.Daily(2));
 
-RecurringJob.AddOrUpdate<IAuthService>(
-    "cleanup-expired-recovery-tokens",
-    service => service.LimparTokensExpiradosAsync(),
-    Cron.Daily(2, 30));
+// RecurringJob.AddOrUpdate<IAuthService>(
+//     "cleanup-expired-recovery-tokens",
+//     service => service.LimparTokensExpiradosAsync(),
+//     Cron.Daily(2, 30));
 
 try
 {

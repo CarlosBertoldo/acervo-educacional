@@ -82,51 +82,58 @@ const Login = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--fc-background)' }}>
         <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-          <span className="text-gray-600">Carregando...</span>
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--fc-primary)' }} />
+          <span style={{ color: 'var(--fc-gray)' }}>Carregando...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--fc-background)' }}>
       <div className="w-full max-w-md">
         {/* Logo e título */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <GraduationCap className="h-8 w-8 text-white" />
+            <div className="p-3 rounded-full" style={{ backgroundColor: 'var(--fc-primary)' }}>
+              <GraduationCap className="h-8 w-8" style={{ color: 'var(--fc-white)' }} />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--fc-gray-dark)' }}>
             Acervo Educacional
           </h1>
-          <p className="text-gray-600">
+          <p style={{ color: 'var(--fc-gray)' }}>
             Sistema de Gerenciamento de Cursos
           </p>
         </div>
 
-        <Card className="shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Entrar</CardTitle>
-            <CardDescription className="text-center">
+        {/* Card de login */}
+        <Card className="fc-card">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl" style={{ color: 'var(--fc-gray-dark)' }}>
+              Entrar
+            </CardTitle>
+            <CardDescription style={{ color: 'var(--fc-gray)' }}>
               Digite suas credenciais para acessar o sistema
             </CardDescription>
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {errors.general && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.general}</AlertDescription>
-                </Alert>
-              )}
+            {errors.general && (
+              <Alert className="mb-4" style={{ borderColor: 'var(--fc-primary)', backgroundColor: 'rgba(193, 45, 0, 0.1)' }}>
+                <AlertDescription style={{ color: 'var(--fc-primary)' }}>
+                  {errors.general}
+                </AlertDescription>
+              </Alert>
+            )}
 
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" style={{ color: 'var(--fc-gray-dark)' }}>
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -134,16 +141,20 @@ const Login = () => {
                   placeholder="seu@email.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={errors.email ? 'border-red-500' : ''}
+                  className={`fc-input ${errors.email ? 'border-red-500' : ''}`}
                   disabled={isSubmitting}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email}</p>
+                  <p className="text-sm" style={{ color: 'var(--fc-primary)' }}>
+                    {errors.email}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" style={{ color: 'var(--fc-gray-dark)' }}>
+                  Senha
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -152,31 +163,30 @@ const Login = () => {
                     placeholder="Digite sua senha"
                     value={formData.password}
                     onChange={handleChange}
-                    className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+                    className={`fc-input pr-10 ${errors.password ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={isSubmitting}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    style={{ color: 'var(--fc-gray)' }}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password}</p>
+                  <p className="text-sm" style={{ color: 'var(--fc-primary)' }}>
+                    {errors.password}
+                  </p>
                 )}
               </div>
 
               <div className="flex items-center justify-between">
-                <Link
-                  to={ROUTES.FORGOT_PASSWORD}
-                  className="text-sm text-blue-600 hover:text-blue-500 hover:underline"
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm hover:underline"
+                  style={{ color: 'var(--fc-primary)' }}
                 >
                   Esqueceu sua senha?
                 </Link>
@@ -184,7 +194,7 @@ const Login = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full fc-btn fc-btn-primary"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -200,8 +210,8 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        {/* Informações adicionais */}
-        <div className="mt-6 text-center text-sm text-gray-600">
+        {/* Footer */}
+        <div className="text-center mt-6 text-sm" style={{ color: 'var(--fc-gray)' }}>
           <p>Sistema desenvolvido para gerenciamento de cursos educacionais</p>
           <p className="mt-1">Todos os usuários são administradores</p>
         </div>

@@ -206,67 +206,16 @@ public class AcervoEducacionalContext : DbContext
             entity.HasIndex(e => e.Categoria);
         });
 
-        // Configurações de SincronizacaoSenior
-        modelBuilder.Entity<SincronizacaoSenior>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.MensagemErro).HasMaxLength(2000);
-
-            entity.Property(e => e.Status)
-                .HasConversion<int>()
-                .IsRequired();
-
-            entity.Property(e => e.Detalhes)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null));
-
-            entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => e.IniciadaEm);
-        });
-
-        // Configurações de ConflitoCurso
-        modelBuilder.Entity<ConflitoCurso>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.CodigoSenior).IsRequired().HasMaxLength(50);
-            entity.Property(e => e.Observacoes).HasMaxLength(1000);
-
-            entity.Property(e => e.TipoConflito)
-                .HasConversion<int>()
-                .IsRequired();
-
-            entity.Property(e => e.Resolucao)
-                .HasConversion<int>();
-
-            entity.Property(e => e.DadosLocal)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null));
-
-            entity.Property(e => e.DadosSenior)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null));
-
-            entity.HasIndex(e => e.CursoId);
-            entity.HasIndex(e => e.CodigoSenior);
-            entity.HasIndex(e => e.TipoConflito);
-            entity.HasIndex(e => e.IsResolvido);
-
-            entity.HasOne(e => e.Curso)
-                .WithMany()
-                .HasForeignKey(e => e.CursoId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            entity.HasOne(e => e.ResolvidoPor)
-                .WithMany()
-                .HasForeignKey(e => e.ResolvidoPorId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
-
-        // Configurar enums para PostgreSQL
-        ConfigureEnumsForPostgreSQL(modelBuilder);
+        // Configurar nomes de tabelas em snake_case
+        modelBuilder.Entity<Usuario>().ToTable("usuarios");
+        modelBuilder.Entity<Curso>().ToTable("cursos");
+        modelBuilder.Entity<Arquivo>().ToTable("arquivos");
+        modelBuilder.Entity<LogAtividade>().ToTable("logs_atividade");
+        modelBuilder.Entity<SessaoUsuario>().ToTable("sessoes_usuario");
+        modelBuilder.Entity<TokenRecuperacao>().ToTable("tokens_recuperacao");
+        modelBuilder.Entity<ConfiguracaoSistema>().ToTable("configuracoes_sistema");
+        modelBuilder.Entity<SincronizacaoSenior>().ToTable("sincronizacoes_senior");
+        modelBuilder.Entity<ConflitoCurso>().ToTable("conflitos_curso");
     }
 
     private static void ConfigureEnumsForPostgreSQL(ModelBuilder modelBuilder)

@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Tema Ferreira Costa */
+@import "./styles/ferreira-costa-theme.css";
+
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
