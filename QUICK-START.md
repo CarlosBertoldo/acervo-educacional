@@ -1,4 +1,6 @@
-# 🎓 Guia Completo - Projeto Acervo Educacional 100% Funcional
+# 🎓 Guia Rápido - Projeto Acervo Educacional 100% Funcional
+
+> 📖 **Documentação completa:** [README.md](README.md) | **Solução de problemas:** [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 ## ✅ **PROJETO ENTREGUE COM SUCESSO!**
 
