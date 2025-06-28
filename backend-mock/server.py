@@ -11,7 +11,7 @@ import datetime
 import json
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5174", "http://localhost:3000", "http://localhost:5004"])
+CORS(app, origins=["http://localhost:5175", "http://localhost:5174", "http://localhost:3000", "http://localhost:5004"])
 
 # Configurações
 SECRET_KEY = "acervo-educacional-secret-key"
@@ -61,8 +61,18 @@ def login():
             return jsonify({
                 'success': True,
                 'message': 'Login realizado com sucesso',
+                'data': {
+                    'accessToken': token,
+                    'refreshToken': token,  # Usando o mesmo token para simplificar
+                    'usuario': {
+                        'id': 1,
+                        'email': email,
+                        'nome': 'Administrador',
+                        'is_admin': True
+                    }
+                },
                 'accessToken': token,
-                'refreshToken': token,  # Usando o mesmo token para simplificar
+                'refreshToken': token,
                 'token': token,
                 'user': {
                     'id': 1,
@@ -252,7 +262,7 @@ def swagger_ui():
 
 if __name__ == '__main__':
     print("🚀 Iniciando Acervo Educacional Backend Mock")
-    print("📍 Swagger UI: http://localhost:5005/swagger")
+    print("📍 Swagger UI: http://localhost:5006/swagger")
     print("🔐 Credenciais: admin@acervoeducacional.com / Admin@123")
-    app.run(host='0.0.0.0', port=5005, debug=True)
+    app.run(host='0.0.0.0', port=5006, debug=True)
 
