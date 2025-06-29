@@ -8,7 +8,7 @@ global.DOMPurify = {
 };
 
 // Mock de variáveis de ambiente
-process.env.VITE_API_URL = 'http://localhost:5006/api';
+process.env.VITE_API_URL = 'http://localhost:5005/api';
 
 // Configurações globais para testes
 beforeEach(() => {

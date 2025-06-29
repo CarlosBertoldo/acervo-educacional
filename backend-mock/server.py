@@ -550,7 +550,7 @@ def swagger_ui():
     <body>
         <div class="container">
             <h1>🎓 Acervo Educacional API</h1>
-            <p><strong>Versão:</strong> 1.0.0 | <strong>Base URL:</strong> http://localhost:5006/api</p>
+            <p><strong>Versão:</strong> 1.0.0 | <strong>Base URL:</strong> http://localhost:5005/api</p>
             <p class="description">API para gerenciamento do sistema de acervo educacional da Ferreira Costa.</p>
             
             <h2>🔐 Autenticação</h2>
@@ -685,7 +685,7 @@ def swagger_ui():
     </html>
     """
     return htmlckend Mock")
-    print("📍 Swagger UI: http://localhost:5006/swagger")
+    print("📍 Swagger UI: http://localhost:5005/swagger")
     print("🔐 Credenciais: admin@acervoeducacional.com / Admin@123")
-    app.run(host='0.0.0.0', port=5006, debug=True)
+    app.run(host='0.0.0.0', port=5005, debug=True)
 

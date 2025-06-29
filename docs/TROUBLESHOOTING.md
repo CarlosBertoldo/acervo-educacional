@@ -39,7 +39,7 @@ pip3 install --upgrade flask flask-cors pyjwt
 **Solução:**
 ```bash
 # Verificar processos nas portas
-lsof -i :5006  # Backend
+lsof -i :5005  # Backend
 lsof -i :5175  # Frontend
 
 # Parar processos se necessário
@@ -68,7 +68,7 @@ pkill -f "node.*vite"
 #### **Problema: CORS**
 ```bash
 # Verificar se backend está rodando
-curl http://localhost:5006/api/health
+curl http://localhost:5005/api/health
 
 # Se não responder, reiniciar backend
 cd backend-mock
@@ -86,7 +86,7 @@ cp .env.example .env
 
 # Verificar conteúdo
 cat .env
-# Deve conter: VITE_API_URL=http://localhost:5006/api
+# Deve conter: VITE_API_URL=http://localhost:5005/api
 ```
 
 #### **Problema: Credenciais Incorretas**
@@ -124,7 +124,7 @@ localStorage.getItem('token')
 **Diagnóstico:**
 ```bash
 # Testar conectividade
-curl -v http://localhost:5006/api/health
+curl -v http://localhost:5005/api/health
 
 # Verificar se serviço está rodando
 ps aux | grep python3
@@ -302,7 +302,7 @@ echo "2. Verificando Python..."
 python3 --version
 
 echo "3. Verificando serviços..."
-curl -s http://localhost:5006/api/health && echo "✅ Backend OK" || echo "❌ Backend FALHOU"
+curl -s http://localhost:5005/api/health && echo "✅ Backend OK" || echo "❌ Backend FALHOU"
 curl -s http://localhost:5175 && echo "✅ Frontend OK" || echo "❌ Frontend FALHOU"
 
 echo "4. Verificando processos..."

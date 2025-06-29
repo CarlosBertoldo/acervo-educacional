@@ -177,8 +177,8 @@ src/
 
 ### **Desenvolvimento:**
 - **Frontend:** http://localhost:5175
-- **Backend API:** http://localhost:5006/api
-- **Swagger UI:** http://localhost:5006/swagger
+- **Backend API:** http://localhost:5005/api
+- **Swagger UI:** http://localhost:5005/swagger
 
 ### **Credenciais Padrão:**
 ```

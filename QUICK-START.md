@@ -34,7 +34,7 @@ O projeto React + Vite com backend .NET 8 foi **completamente otimizado** e est�
 
 ### **1. Variável VITE_API_URL** ✅
 - ✅ Criado arquivo `.env` no frontend
-- ✅ Configuração correta: `VITE_API_URL=http://localhost:5006/api`
+- ✅ Configuração correta: `VITE_API_URL=http://localhost:5005/api`
 - ✅ Vite lendo a variável corretamente durante `npm run dev`
 
 ### **2. Autenticação Funcionando** ✅
@@ -71,7 +71,7 @@ cd frontend/acervo-educacional-frontend
 npm install
 
 # Criar arquivo .env
-echo "VITE_API_URL=http://localhost:5006/api" > .env
+echo "VITE_API_URL=http://localhost:5005/api" > .env
 ```
 
 ### **Passo 3: Configurar Backend Mock**
@@ -107,11 +107,11 @@ npm run dev
 - **Descrição:** Interface principal do sistema
 
 ### **Backend API**
-- **URL:** http://localhost:5006/api
+- **URL:** http://localhost:5005/api
 - **Descrição:** API REST funcional com autenticação
 
 ### **Swagger UI**
-- **URL:** http://localhost:5006/swagger
+- **URL:** http://localhost:5005/swagger
 - **Descrição:** Documentação interativa da API
 
 ## 🔐 **CREDENCIAIS DE ACESSO:**
@@ -197,7 +197,7 @@ Senha: Admin@123
 ### **Problema: Porta em uso**
 ```bash
 # Verificar processos na porta
-lsof -i :5006
+lsof -i :5005
 
 # Parar processo se necessário
 pkill -f python3
