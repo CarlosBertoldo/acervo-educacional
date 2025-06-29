@@ -1,0 +1,57 @@
+# Configuração de Cron para Backup Automático
+# Acervo Educacional - Ferreira Costa
+#
+# Para ativar este cron, execute:
+# crontab -e
+# 
+# E adicione as linhas abaixo (sem os comentários #):
+
+# Backup diário às 02:00 (2:00 AM)
+0 2 * * * /home/ubuntu/acervo-educacional-latest/scripts/backup.sh backup >> /home/ubuntu/acervo-educacional-latest/logs/cron.log 2>&1
+
+# Limpeza semanal de backups antigos (domingos às 03:00)
+0 3 * * 0 /home/ubuntu/acervo-educacional-latest/scripts/backup.sh cleanup >> /home/ubuntu/acervo-educacional-latest/logs/cron.log 2>&1
+
+# Verificação de saúde do sistema de backup (diário às 01:00)
+0 1 * * * /home/ubuntu/acervo-educacional-latest/scripts/backup.sh list >> /home/ubuntu/acervo-educacional-latest/logs/backup_health.log 2>&1
+
+# ============================================================================
+# INSTRUÇÕES DE INSTALAÇÃO:
+# ============================================================================
+#
+# 1. Para instalar o cron automaticamente, execute:
+#    cd /home/ubuntu/acervo-educacional-latest/scripts
+#    ./install_cron.sh
+#
+# 2. Para instalar manualmente:
+#    crontab -e
+#    # Copie e cole as linhas de cron acima (sem os comentários #)
+#
+# 3. Para verificar se o cron está ativo:
+#    crontab -l
+#
+# 4. Para verificar logs do cron:
+#    tail -f /home/ubuntu/acervo-educacional-latest/logs/cron.log
+#
+# ============================================================================
+# HORÁRIOS CONFIGURADOS:
+# ============================================================================
+#
+# 01:00 - Verificação de saúde (lista backups)
+# 02:00 - Backup diário automático
+# 03:00 - Limpeza semanal (domingos)
+#
+# ============================================================================
+# PERSONALIZAÇÃO:
+# ============================================================================
+#
+# Para alterar horários, modifique os números:
+# Formato: minuto hora dia_mes mes dia_semana comando
+#
+# Exemplos:
+# 30 14 * * * = Todo dia às 14:30
+# 0 6 * * 1   = Toda segunda-feira às 06:00
+# 0 */6 * * * = A cada 6 horas
+#
+# ============================================================================
+

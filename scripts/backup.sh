@@ -1,160 +1,175 @@
 #!/bin/bash
 
-# Script de Backup Automático - Sistema Acervo Educacional
-# Executa backup diário do PostgreSQL e arquivos
-
-set -e
+# Script de Backup Automático do Banco de Dados
+# Acervo Educacional - Ferreira Costa
+# Autor: Sistema Automatizado
+# Data: $(date +%Y-%m-%d)
 
 # Configurações
-BACKUP_DIR="/backup"
-DB_HOST="postgres"
+DB_HOST="localhost"
+DB_PORT="5432"
 DB_NAME="acervo_educacional"
-DB_USER="acervo_user"
-DATE=$(date +%Y%m%d_%H%M%S)
-RETENTION_DAYS=30
+DB_USER="postgres"
+DB_PASSWORD="postgres"
 
-# Cores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Diretórios
+BACKUP_DIR="/home/ubuntu/acervo-educacional-latest/backups"
+LOG_DIR="/home/ubuntu/acervo-educacional-latest/logs"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="backup_acervo_${TIMESTAMP}.sql"
+BACKUP_COMPRESSED="backup_acervo_${TIMESTAMP}.sql.gz"
+
+# Criar diretórios se não existirem
+mkdir -p "$BACKUP_DIR"
+mkdir -p "$LOG_DIR"
 
 # Função de log
-log() {
-    echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} $1"
+log_message() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_DIR/backup.log"
 }
 
-error() {
-    echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1" >&2
+# Função de limpeza de backups antigos (manter apenas 7 dias)
+cleanup_old_backups() {
+    log_message "Iniciando limpeza de backups antigos..."
+    find "$BACKUP_DIR" -name "backup_acervo_*.sql.gz" -mtime +7 -delete
+    log_message "Limpeza concluída. Backups mantidos: últimos 7 dias"
 }
 
-warning() {
-    echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')] WARNING:${NC} $1"
-}
-
-# Criar diretórios de backup
-mkdir -p "$BACKUP_DIR/database"
-mkdir -p "$BACKUP_DIR/logs"
-
-log "Iniciando backup do Sistema Acervo Educacional..."
-
-# Backup do banco de dados
-log "Realizando backup do banco de dados PostgreSQL..."
-BACKUP_FILE="$BACKUP_DIR/database/acervo_educacional_$DATE.sql"
-
-if pg_dump -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" --verbose --clean --no-owner --no-privileges > "$BACKUP_FILE"; then
-    log "Backup do banco de dados concluído: $BACKUP_FILE"
+# Função principal de backup
+perform_backup() {
+    log_message "=== INICIANDO BACKUP DO BANCO DE DADOS ==="
+    log_message "Banco: $DB_NAME"
+    log_message "Host: $DB_HOST:$DB_PORT"
+    log_message "Arquivo: $BACKUP_COMPRESSED"
     
-    # Comprimir backup
-    if gzip "$BACKUP_FILE"; then
-        log "Backup comprimido: $BACKUP_FILE.gz"
-        BACKUP_FILE="$BACKUP_FILE.gz"
-    else
-        warning "Falha ao comprimir backup, mantendo arquivo original"
-    fi
-else
-    error "Falha no backup do banco de dados"
-    exit 1
-fi
-
-# Backup de logs (se existirem)
-if [ -d "/app/logs" ]; then
-    log "Realizando backup dos logs..."
-    LOG_BACKUP="$BACKUP_DIR/logs/logs_$DATE.tar.gz"
+    # Definir senha via variável de ambiente
+    export PGPASSWORD="$DB_PASSWORD"
     
-    if tar -czf "$LOG_BACKUP" -C /app logs/; then
-        log "Backup dos logs concluído: $LOG_BACKUP"
-    else
-        warning "Falha no backup dos logs"
-    fi
-fi
-
-# Limpeza de backups antigos
-log "Removendo backups antigos (mais de $RETENTION_DAYS dias)..."
-
-# Remover backups de banco antigos
-find "$BACKUP_DIR/database" -name "*.sql.gz" -type f -mtime +$RETENTION_DAYS -delete 2>/dev/null || true
-find "$BACKUP_DIR/database" -name "*.sql" -type f -mtime +$RETENTION_DAYS -delete 2>/dev/null || true
-
-# Remover backups de logs antigos
-find "$BACKUP_DIR/logs" -name "*.tar.gz" -type f -mtime +$RETENTION_DAYS -delete 2>/dev/null || true
-
-# Verificar espaço em disco
-DISK_USAGE=$(df "$BACKUP_DIR" | awk 'NR==2 {print $5}' | sed 's/%//')
-if [ "$DISK_USAGE" -gt 85 ]; then
-    warning "Uso de disco alto: ${DISK_USAGE}%. Considere aumentar o espaço ou reduzir a retenção."
-fi
-
-# Estatísticas do backup
-BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
-TOTAL_BACKUPS=$(find "$BACKUP_DIR/database" -name "*.sql*" -type f | wc -l)
-
-log "Backup concluído com sucesso!"
-log "Tamanho do backup: $BACKUP_SIZE"
-log "Total de backups mantidos: $TOTAL_BACKUPS"
-
-# Opcional: Enviar backup para S3 (se configurado)
-if [ -n "$AWS_ACCESS_KEY" ] && [ -n "$AWS_SECRET_KEY" ] && [ -n "$AWS_BACKUP_BUCKET" ]; then
-    log "Enviando backup para AWS S3..."
-    
-    # Configurar AWS CLI (se disponível)
-    if command -v aws >/dev/null 2>&1; then
-        aws configure set aws_access_key_id "$AWS_ACCESS_KEY"
-        aws configure set aws_secret_access_key "$AWS_SECRET_KEY"
-        aws configure set default.region "$AWS_REGION"
+    # Executar backup
+    if pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+        --verbose --clean --no-owner --no-privileges \
+        -f "$BACKUP_DIR/$BACKUP_FILE" 2>> "$LOG_DIR/backup.log"; then
         
-        S3_KEY="backups/database/$(basename "$BACKUP_FILE")"
+        log_message "Dump do banco realizado com sucesso"
         
-        if aws s3 cp "$BACKUP_FILE" "s3://$AWS_BACKUP_BUCKET/$S3_KEY"; then
-            log "Backup enviado para S3: s3://$AWS_BACKUP_BUCKET/$S3_KEY"
+        # Comprimir backup
+        if gzip "$BACKUP_DIR/$BACKUP_FILE"; then
+            log_message "Backup comprimido com sucesso: $BACKUP_COMPRESSED"
+            
+            # Verificar tamanho do arquivo
+            BACKUP_SIZE=$(du -h "$BACKUP_DIR/$BACKUP_COMPRESSED" | cut -f1)
+            log_message "Tamanho do backup: $BACKUP_SIZE"
+            
+            # Limpeza de backups antigos
+            cleanup_old_backups
+            
+            log_message "=== BACKUP CONCLUÍDO COM SUCESSO ==="
+            return 0
         else
-            warning "Falha ao enviar backup para S3"
+            log_message "ERRO: Falha ao comprimir o backup"
+            return 1
         fi
     else
-        warning "AWS CLI não disponível, pulando upload para S3"
+        log_message "ERRO: Falha ao realizar dump do banco de dados"
+        return 1
     fi
-fi
-
-# Opcional: Notificação por webhook (se configurado)
-if [ -n "$WEBHOOK_URL" ]; then
-    log "Enviando notificação de backup..."
-    
-    PAYLOAD=$(cat <<EOF
-{
-    "text": "✅ Backup do Acervo Educacional concluído",
-    "attachments": [
-        {
-            "color": "good",
-            "fields": [
-                {
-                    "title": "Data/Hora",
-                    "value": "$(date '+%d/%m/%Y %H:%M:%S')",
-                    "short": true
-                },
-                {
-                    "title": "Tamanho",
-                    "value": "$BACKUP_SIZE",
-                    "short": true
-                },
-                {
-                    "title": "Arquivo",
-                    "value": "$(basename "$BACKUP_FILE")",
-                    "short": false
-                }
-            ]
-        }
-    ]
 }
-EOF
-)
 
-    if curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$WEBHOOK_URL" >/dev/null 2>&1; then
-        log "Notificação enviada com sucesso"
-    else
-        warning "Falha ao enviar notificação"
+# Função de verificação de pré-requisitos
+check_prerequisites() {
+    log_message "Verificando pré-requisitos..."
+    
+    # Verificar se pg_dump está disponível
+    if ! command -v pg_dump &> /dev/null; then
+        log_message "ERRO: pg_dump não encontrado. Instale postgresql-client"
+        return 1
     fi
-fi
+    
+    # Verificar se gzip está disponível
+    if ! command -v gzip &> /dev/null; then
+        log_message "ERRO: gzip não encontrado"
+        return 1
+    fi
+    
+    # Verificar conectividade com o banco
+    export PGPASSWORD="$DB_PASSWORD"
+    if ! pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" &> /dev/null; then
+        log_message "AVISO: Não foi possível conectar ao banco. Backup pode falhar."
+    fi
+    
+    log_message "Pré-requisitos verificados"
+    return 0
+}
 
-log "Script de backup finalizado."
-exit 0
+# Função de restauração (para uso manual)
+restore_backup() {
+    if [ -z "$1" ]; then
+        echo "Uso: $0 restore <arquivo_backup.sql.gz>"
+        echo "Exemplo: $0 restore backup_acervo_20241228_143022.sql.gz"
+        return 1
+    fi
+    
+    RESTORE_FILE="$1"
+    
+    if [ ! -f "$BACKUP_DIR/$RESTORE_FILE" ]; then
+        log_message "ERRO: Arquivo de backup não encontrado: $RESTORE_FILE"
+        return 1
+    fi
+    
+    log_message "=== INICIANDO RESTAURAÇÃO DO BANCO ==="
+    log_message "Arquivo: $RESTORE_FILE"
+    
+    # Descomprimir e restaurar
+    export PGPASSWORD="$DB_PASSWORD"
+    if gunzip -c "$BACKUP_DIR/$RESTORE_FILE" | psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME"; then
+        log_message "=== RESTAURAÇÃO CONCLUÍDA COM SUCESSO ==="
+        return 0
+    else
+        log_message "ERRO: Falha na restauração do banco"
+        return 1
+    fi
+}
+
+# Função de listagem de backups
+list_backups() {
+    log_message "=== BACKUPS DISPONÍVEIS ==="
+    ls -lh "$BACKUP_DIR"/backup_acervo_*.sql.gz 2>/dev/null | while read line; do
+        echo "$line"
+    done
+}
+
+# Função principal
+main() {
+    case "${1:-backup}" in
+        "backup")
+            check_prerequisites && perform_backup
+            ;;
+        "restore")
+            restore_backup "$2"
+            ;;
+        "list")
+            list_backups
+            ;;
+        "cleanup")
+            cleanup_old_backups
+            ;;
+        *)
+            echo "Uso: $0 [backup|restore|list|cleanup]"
+            echo ""
+            echo "Comandos:"
+            echo "  backup          - Realizar backup do banco (padrão)"
+            echo "  restore <file>  - Restaurar backup específico"
+            echo "  list           - Listar backups disponíveis"
+            echo "  cleanup        - Limpar backups antigos"
+            echo ""
+            echo "Exemplos:"
+            echo "  $0                                    # Backup automático"
+            echo "  $0 restore backup_acervo_20241228_143022.sql.gz"
+            echo "  $0 list"
+            ;;
+    esac
+}
+
+# Executar função principal
+main "$@"
 

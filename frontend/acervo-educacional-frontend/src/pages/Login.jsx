@@ -9,6 +9,7 @@ import { Loader2, Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { validateEmail } from '../utils';
 import { ROUTES, MESSAGES } from '../constants';
+import SecurityUtils from '../utils/SecurityUtils';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,9 +26,13 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Sanitizar dados de entrada para prevenir XSS
+    const sanitizedValue = SecurityUtils.sanitizeInput(value);
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
     }));
     
     // Limpar erro do campo quando usuário começar a digitar
@@ -44,12 +49,17 @@ const Login = () => {
 
     if (!formData.email) {
       newErrors.email = 'Email é obrigatório';
-    } else if (!validateEmail(formData.email)) {
+    } else if (!SecurityUtils.isValidEmail(formData.email)) {
       newErrors.email = 'Email deve ter um formato válido';
     }
 
     if (!formData.password) {
       newErrors.password = 'Senha é obrigatória';
+    } else {
+      const passwordValidation = SecurityUtils.validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        newErrors.password = passwordValidation.errors[0];
+      }
     }
 
     setErrors(newErrors);
@@ -66,7 +76,10 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      const result = await login(formData.email, formData.password);
+      // Limpar e sanitizar dados antes de enviar
+      const cleanData = SecurityUtils.cleanFormData(formData);
+      
+      const result = await login(cleanData.email, cleanData.password);
       
       if (result.success) {
         navigate(ROUTES.DASHBOARD);
