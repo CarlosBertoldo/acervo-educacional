@@ -7,6 +7,38 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [2.1.0] - 2025-06-29
+
+### 🔧 **CORREÇÕES CRÍTICAS E LIMPEZA DO REPOSITÓRIO**
+
+#### ✅ **Correções Implementadas:**
+
+**1. Correção de Sintaxe no Backend Mock**
+- Erro de indentação na linha 451 corrigido
+- String não terminada na linha 687 corrigida
+- Arquivo server.py completamente validado
+- Sintaxe Python 100% funcional
+
+**2. Soluções para Problema PATH do Python**
+- Scripts de verificação automática criados (check-python.sh/bat)
+- Scripts adaptativos para backend (start-backend.sh/bat)
+- Detecção automática de python/python3/py
+- Documentação atualizada com troubleshooting específico
+
+**3. Limpeza e Organização do Repositório**
+- Arquivos temporários removidos (__pycache__, *.pyc)
+- Documentação duplicada removida (ARCHITECTURE.md, DEPLOYMENT.md, INSTALLATION.md)
+- Diretório database/ duplicado removido
+- Estrutura de arquivos otimizada
+
+#### 🎯 **Melhorias de Usabilidade:**
+- Scripts adaptativos funcionam em Windows/macOS/Linux
+- Detecção automática de ambiente Python
+- Instruções específicas por sistema operacional
+- Troubleshooting completo para problemas comuns
+
+---
+
 ## [2.0.0] - 2025-06-28
 
 ### 🚀 **IMPLEMENTAÇÃO COMPLETA DAS 10 TAREFAS ESSENCIAIS**

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Backend Mock Funcional para Acervo Educacional
 Demonstração completa de login e navegação
@@ -18,194 +17,106 @@ CORS(app, origins=["http://localhost:5175", "http://localhost:5174", "http://loc
 
 # Configurações
 SECRET_KEY = "acervo-educacional-secret-key"
-ADMIN_EMAIL = "admin@acervoeducacional.com"
-ADMIN_PASSWORD = "Admin@123"
 
 # Configuração de Logs Estruturados
-class StructuredLogger:
-    def __init__(self):
-        self.logger = logging.getLogger('acervo_educacional')
-        self.logger.setLevel(logging.INFO)
-        
-        # Handler para console
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.INFO)
-        
-        # Formatter JSON estruturado
-        formatter = logging.Formatter(
-            '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s", "module": "%(name)s"}'
-        )
-        console_handler.setFormatter(formatter)
-        
-        self.logger.addHandler(console_handler)
-    
-    def info(self, message, **kwargs):
-        log_data = {"message": message, **kwargs}
-        self.logger.info(json.dumps(log_data))
-    
-    def error(self, message, **kwargs):
-        log_data = {"message": message, **kwargs}
-        self.logger.error(json.dumps(log_data))
-    
-    def warning(self, message, **kwargs):
-        log_data = {"message": message, **kwargs}
-        self.logger.warning(json.dumps(log_data))
-    
-    def debug(self, message, **kwargs):
-        log_data = {"message": message, **kwargs}
-        self.logger.debug(json.dumps(log_data))
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
-# Instância global do logger
-structured_logger = StructuredLogger()
-
-# Decorator para log de requisições
-def log_request(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        start_time = datetime.datetime.now()
-        
-        # Log da requisição
-        structured_logger.info("Request received", 
-                             endpoint=request.endpoint,
-                             method=request.method,
-                             ip=request.remote_addr,
-                             user_agent=request.headers.get('User-Agent', 'Unknown'))
-        
-        try:
-            result = f(*args, **kwargs)
-            
-            # Log de sucesso
-            end_time = datetime.datetime.now()
-            duration = (end_time - start_time).total_seconds()
-            
-            structured_logger.info("Request completed successfully",
-                                 endpoint=request.endpoint,
-                                 method=request.method,
-                                 duration_seconds=duration,
-                                 status_code=getattr(result, 'status_code', 200))
-            
-            return result
-            
-        except Exception as e:
-            # Log de erro
-            end_time = datetime.datetime.now()
-            duration = (end_time - start_time).total_seconds()
-            
-            structured_logger.error("Request failed",
-                                  endpoint=request.endpoint,
-                                  method=request.method,
-                                  duration_seconds=duration,
-                                  error=str(e),
-                                  error_type=type(e).__name__)
-            raise
-    
-    return decorated_function
+logger = logging.getLogger(__name__)
 
 # Sistema de Cache Simples em Memória
 class SimpleCache:
     def __init__(self):
         self.cache = {}
         self.timestamps = {}
-        self.default_ttl = 300  # 5 minutos em segundos
     
-    def get(self, key: str):
-        """Recupera um valor do cache"""
-        if key not in self.cache:
-            return None
-        
-        # Verificar se o cache expirou
-        if self._is_expired(key):
-            self.delete(key)
-            return None
-        
-        logger.info("Cache hit", key=key)
-        return self.cache[key]
+    def get(self, key):
+        if key in self.cache:
+            timestamp = self.timestamps.get(key, 0)
+            if datetime.datetime.now().timestamp() - timestamp < self.ttl.get(key, 300):
+                logger.info(f"Cache HIT para chave: {key}")
+                return self.cache[key]
+            else:
+                logger.info(f"Cache EXPIRED para chave: {key}")
+                self.delete(key)
+        logger.info(f"Cache MISS para chave: {key}")
+        return None
     
-    def set(self, key: str, value, ttl: int = None):
-        """Armazena um valor no cache"""
-        if ttl is None:
-            ttl = self.default_ttl
-        
+    def set(self, key, value, ttl=300):
         self.cache[key] = value
-        self.timestamps[key] = {
-            'created': datetime.datetime.now(),
-            'ttl': ttl
-        }
-        
-        logger.info("Cache set", key=key, ttl=ttl)
+        self.timestamps[key] = datetime.datetime.now().timestamp()
+        if not hasattr(self, 'ttl'):
+            self.ttl = {}
+        self.ttl[key] = ttl
+        logger.info(f"Cache SET para chave: {key}, TTL: {ttl}s")
     
-    def delete(self, key: str):
-        """Remove um valor do cache"""
+    def delete(self, key):
         if key in self.cache:
             del self.cache[key]
+        if key in self.timestamps:
             del self.timestamps[key]
-            logger.info("Cache deleted", key=key)
-    
-    def clear(self):
-        """Limpa todo o cache"""
-        self.cache.clear()
-        self.timestamps.clear()
-        logger.info("Cache cleared")
-    
-    def _is_expired(self, key: str) -> bool:
-        """Verifica se uma entrada do cache expirou"""
-        if key not in self.timestamps:
-            return True
-        
-        timestamp_info = self.timestamps[key]
-        created = timestamp_info['created']
-        ttl = timestamp_info['ttl']
-        
-        return (datetime.datetime.now() - created).total_seconds() > ttl
+        if hasattr(self, 'ttl') and key in self.ttl:
+            del self.ttl[key]
     
     def get_stats(self):
-        """Retorna estatísticas do cache"""
-        total_keys = len(self.cache)
-        expired_keys = sum(1 for key in self.cache.keys() if self._is_expired(key))
-        
         return {
-            'total_keys': total_keys,
-            'active_keys': total_keys - expired_keys,
-            'expired_keys': expired_keys
+            'total_keys': len(self.cache),
+            'cache_size_bytes': sys.getsizeof(self.cache),
+            'oldest_entry': min(self.timestamps.values()) if self.timestamps else None
         }
 
-# Instância global do cache
 cache = SimpleCache()
 
-# Decorator para log de requisições
+# Decorator para logs estruturados
 def log_request(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         start_time = datetime.datetime.now()
         
         # Log da requisição
-        logger.info("Request received", 
-                   endpoint=request.endpoint,
-                   method=request.method,
-                   ip=request.remote_addr,
-                   user_agent=request.headers.get('User-Agent', 'Unknown'))
+        logger.info("REQUEST", extra={
+            'method': request.method,
+            'url': request.url,
+            'remote_addr': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', ''),
+            'timestamp': start_time.isoformat()
+        })
         
         try:
             result = f(*args, **kwargs)
             
-            # Log de sucesso
-            duration = (datetime.datetime.now() - start_time).total_seconds()
-            logger.info("Request completed successfully",
-                       endpoint=request.endpoint,
-                       method=request.method,
-                       duration_seconds=duration,
-                       status_code=getattr(result, 'status_code', 200))
+            # Log da resposta
+            end_time = datetime.datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            
+            logger.info("RESPONSE", extra={
+                'method': request.method,
+                'url': request.url,
+                'status_code': getattr(result, 'status_code', 200),
+                'duration_seconds': duration,
+                'timestamp': end_time.isoformat()
+            })
             
             return result
             
         except Exception as e:
-            # Log de erro
-            duration = (datetime.datetime.now() - start_time).total_seconds()
-            logger.error("Request failed",
-                        endpoint=request.endpoint,
-                        method=request.method,
-                        duration_seconds=duration,
-                        error=str(e))
+            # Log do erro
+            end_time = datetime.datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            
+            logger.error("ERROR", extra={
+                'method': request.method,
+                'url': request.url,
+                'error': str(e),
+                'duration_seconds': duration,
+                'timestamp': end_time.isoformat()
+            })
+            
             raise
     
     return decorated_function
@@ -213,39 +124,63 @@ def log_request(f):
 # Dados mock
 usuarios_mock = [
     {
-        "id": 1,
-        "email": "admin@acervoeducacional.com",
-        "nome": "Administrador",
-        "is_admin": True
+        'id': 1,
+        'email': 'admin@acervoeducacional.com',
+        'nome': 'Administrador',
+        'senha': 'Admin@123',
+        'is_admin': True
     }
 ]
 
 cursos_mock = [
-    {"id": 1, "titulo": "Curso de Python", "status": "Veiculado", "categoria": "Programação"},
-    {"id": 2, "titulo": "Curso de React", "status": "Em Desenvolvimento", "categoria": "Frontend"},
-    {"id": 3, "titulo": "Curso de Docker", "status": "Backlog", "categoria": "DevOps"},
+    {
+        'id': 1,
+        'titulo': 'Curso de Python',
+        'categoria': 'Programação',
+        'status': 'Veiculado'
+    },
+    {
+        'id': 2,
+        'titulo': 'Curso de React',
+        'categoria': 'Frontend',
+        'status': 'Em Desenvolvimento'
+    },
+    {
+        'id': 3,
+        'titulo': 'Curso de Docker',
+        'categoria': 'DevOps',
+        'status': 'Backlog'
+    }
 ]
 
 @app.route('/api/auth/login', methods=['POST'])
 @app.route('/api/v1/auth/login', methods=['POST'])
 @log_request
 def login():
-    """Endpoint de autenticação"""
+    """Realizar login no sistema"""
     try:
         data = request.get_json()
-        email = data.get('email', '').strip()
-        password = data.get('password', '').strip()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'Dados não fornecidos'
+            }), 400
+        
+        email = data.get('email', '').strip().lower()
+        senha = data.get('password', '')
         
         print(f"Tentativa de login: {email}")
         
-        # Validar credenciais
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        # Verificar credenciais
+        usuario = next((u for u in usuarios_mock if u['email'].lower() == email and u['senha'] == senha), None)
+        
+        if usuario:
             # Gerar token JWT
             payload = {
-                'user_id': 1,
-                'email': email,
-                'nome': 'Administrador',
-                'is_admin': True,
+                'user_id': usuario['id'],
+                'email': usuario['email'],
+                'is_admin': usuario['is_admin'],
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
             }
             
@@ -306,7 +241,6 @@ def verify_token():
             'user': {
                 'id': payload['user_id'],
                 'email': payload['email'],
-                'nome': payload['nome'],
                 'is_admin': payload['is_admin']
             }
         }), 200
@@ -447,7 +381,8 @@ def health_check():
             'error': 'Health check failed',
             'version': '1.0.0'
         }), 500
-    @app.route('/swagger', methods=['GET'])
+
+@app.route('/swagger', methods=['GET'])
 def swagger_ui():
     """Swagger UI com documentação completa"""
     html = """
@@ -498,54 +433,42 @@ def swagger_ui():
             }
             .method.get { background: #8FBF00; }
             .method.post { background: #C12D00; }
-            .params {
-                background: #e9ecef;
-                padding: 10px;
-                border-radius: 4px;
-                margin: 10px 0;
-                font-family: monospace;
-                font-size: 14px;
-            }
-            .response {
-                background: #d4edda;
-                padding: 10px;
-                border-radius: 4px;
-                margin: 10px 0;
-                font-family: monospace;
-                font-size: 12px;
-                border-left: 4px solid #28a745;
-            }
-            .description {
-                color: #666;
-                margin: 10px 0;
-            }
-            .status {
-                display: inline-block;
-                background: #28a745;
-                color: white;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 11px;
+            .status { 
+                background: #28a745; 
+                color: white; 
+                padding: 4px 8px; 
+                border-radius: 3px; 
+                font-size: 11px; 
                 margin-left: 10px;
             }
-            .auth-required {
-                background: #fff3cd;
-                color: #856404;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                margin: 5px 0;
+            .description { 
+                color: #666; 
+                margin-top: 8px; 
+                font-style: italic;
             }
-            .cache-info {
-                background: #cce5ff;
-                color: #004085;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                margin: 5px 0;
+            .credentials {
+                background: #e7f3ff;
+                border: 1px solid #b3d9ff;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+            }
+            .links {
+                background: #f0f8f0;
+                border: 1px solid #c3e6c3;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+            }
+            .links a {
+                color: #8FBF00;
+                text-decoration: none;
+                margin-right: 15px;
+            }
+            .links a:hover {
+                text-decoration: underline;
             }
         </style>
-        <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     </head>
     <body>
         <div class="container">
@@ -556,135 +479,73 @@ def swagger_ui():
             <h2>🔐 Autenticação</h2>
             <div class="endpoint">
                 <span class="method post">POST</span> <strong>/api/auth/login</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Realiza autenticação no sistema</div>
-                <div class="params">
-                    <strong>Body (JSON):</strong><br>
-                    {<br>
-                    &nbsp;&nbsp;"email": "admin@acervoeducacional.com",<br>
-                    &nbsp;&nbsp;"password": "Admin@123"<br>
-                    }
-                </div>
-                <div class="response">
-                    <strong>Resposta (200):</strong><br>
-                    {<br>
-                    &nbsp;&nbsp;"success": true,<br>
-                    &nbsp;&nbsp;"message": "Login realizado com sucesso",<br>
-                    &nbsp;&nbsp;"data": {<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"accessToken": "jwt_token_here",<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"refreshToken": "jwt_token_here",<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"usuario": { ... }<br>
-                    &nbsp;&nbsp;}<br>
-                    }
-                </div>
+                <div class="description">Realizar login no sistema</div>
             </div>
-
+            
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/auth/verify</strong> <span class="status">✅ Ativo</span>
-                <div class="auth-required">🔒 Requer autenticação: Bearer Token</div>
-                <div class="description">Verifica validade do token de autenticação</div>
-                <div class="params">
-                    <strong>Headers:</strong><br>
-                    Authorization: Bearer {token}
-                </div>
+                <div class="description">Verificar token de autenticação</div>
             </div>
-
+            
             <h2>📊 Dashboard</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/dashboard/stats</strong> <span class="status">✅ Ativo</span>
-                <div class="cache-info">💾 Cache ativo: 2 minutos</div>
-                <div class="description">Retorna estatísticas do dashboard</div>
-                <div class="response">
-                    <strong>Resposta (200):</strong><br>
-                    {<br>
-                    &nbsp;&nbsp;"total_cursos": 3,<br>
-                    &nbsp;&nbsp;"total_usuarios": 2,<br>
-                    &nbsp;&nbsp;"cursos_ativos": 1,<br>
-                    &nbsp;&nbsp;"cursos_desenvolvimento": 1,<br>
-                    &nbsp;&nbsp;"cache_info": "...",<br>
-                    &nbsp;&nbsp;"timestamp": "2025-01-01T12:00:00"<br>
-                    }
-                </div>
+                <div class="description">Estatísticas do dashboard</div>
             </div>
-
+            
             <h2>📚 Cursos</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/cursos</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Lista cursos com paginação e busca</div>
-                <div class="params">
-                    <strong>Query Parameters (opcionais):</strong><br>
-                    • page: Número da página (padrão: 1)<br>
-                    • per_page: Itens por página (padrão: 10, máx: 100)<br>
-                    • search: Termo de busca (título ou categoria)
-                </div>
-                <div class="response">
-                    <strong>Exemplo:</strong> /api/cursos?page=1&per_page=5&search=react<br>
-                    <strong>Resposta (200):</strong><br>
-                    {<br>
-                    &nbsp;&nbsp;"data": [...],<br>
-                    &nbsp;&nbsp;"pagination": {<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"page": 1,<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"per_page": 5,<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"total": 3,<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"total_pages": 1,<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"has_next": false,<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"has_prev": false<br>
-                    &nbsp;&nbsp;}<br>
-                    }
-                </div>
+                <div class="description">Listar todos os cursos</div>
             </div>
-
+            
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/cursos/kanban</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Cursos organizados por status para visualização Kanban</div>
+                <div class="description">Cursos organizados por status (Kanban)</div>
             </div>
-
+            
             <h2>👥 Usuários</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/usuarios</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Lista usuários do sistema</div>
+                <div class="description">Listar usuários do sistema</div>
             </div>
-
+            
             <h2>🔧 Sistema</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/health</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Verifica status de saúde da API</div>
-                <div class="response">
-                    <strong>Resposta (200):</strong><br>
-                    {<br>
-                    &nbsp;&nbsp;"status": "healthy",<br>
-                    &nbsp;&nbsp;"timestamp": "2025-01-01T12:00:00",<br>
-                    &nbsp;&nbsp;"version": "1.0.0",<br>
-                    &nbsp;&nbsp;"cache_stats": { ... }<br>
-                    }
-                </div>
+                <div class="description">Verificar saúde da API</div>
             </div>
-
+            
+            <div class="credentials">
+                <h3>🔑 Credenciais de Teste:</h3>
+                <p>📧 <strong>Email:</strong> admin@acervoeducacional.com</p>
+                <p>🔒 <strong>Senha:</strong> Admin@123</p>
+            </div>
+            
             <h2>📝 Notas Importantes</h2>
             <ul>
-                <li><strong>Autenticação:</strong> Use o token JWT no header Authorization</li>
+                <li><strong>Autenticação:</strong> Use Bearer token no header Authorization</li>
+                <li><strong>CORS:</strong> Configurado para localhost:5175, 5174, 3000, 5004</li>
                 <li><strong>Cache:</strong> Estatísticas do dashboard são cacheadas por 2 minutos</li>
                 <li><strong>Paginação:</strong> Todas as listagens suportam paginação</li>
                 <li><strong>Logs:</strong> Todas as requisições são logadas em formato estruturado</li>
-                <li><strong>CORS:</strong> Configurado para aceitar requisições do frontend</li>
-            </ul>
-
-            <h2>🔗 Links Úteis</h2>
-            <ul>
-                <li><a href="/api/health" target="_blank">Health Check</a></li>
-                <li><a href="/api/dashboard/stats" target="_blank">Dashboard Stats</a></li>
-                <li><a href="/api/cursos" target="_blank">Lista de Cursos</a></li>
             </ul>
             
-            <hr style="margin: 30px 0;">
-            <p style="text-align: center; color: #666; font-size: 14px;">
-                🏢 <strong>Ferreira Costa</strong> - Sistema Acervo Educacional<br>
-                Desenvolvido com Flask + React + TypeScript
-            </p>
+            <div class="links">
+                <h3>🔗 Links Úteis:</h3>
+                <a href="/api/health" target="_blank">Health Check</a>
+                <a href="/api/dashboard/stats" target="_blank">Dashboard Stats</a>
+                <a href="/api/cursos" target="_blank">Lista de Cursos</a>
+                <a href="/api/usuarios" target="_blank">Lista de Usuários</a>
+            </div>
         </div>
     </body>
     </html>
     """
-    return htmlckend Mock")
+    return html
+
+if __name__ == '__main__':
+    print("🚀 Iniciando Backend Mock")
     print("📍 Swagger UI: http://localhost:5005/swagger")
     print("🔐 Credenciais: admin@acervoeducacional.com / Admin@123")
     app.run(host='0.0.0.0', port=5005, debug=True)

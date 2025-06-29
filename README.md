@@ -2,11 +2,12 @@
 
 Sistema web moderno para gerenciamento de cursos e arquivos educacionais com painel administrativo Kanban, desenvolvido com **Clean Architecture** e tecnologias atuais.
 
-## ✅ **PROJETO 100% OTIMIZADO E FUNCIONAL**
+## ✅ **PROJETO 100% FUNCIONAL E TESTADO**
 
 **Status:** 🚀 **Pronto para produção**  
-**Última atualização:** 28/06/2025  
-**Implementações:** 10 tarefas essenciais concluídas  
+**Última atualização:** 29/06/2025  
+**Versão:** 2.1.0  
+**Implementações:** 10 tarefas essenciais + correções críticas concluídas  
 
 ### **🔒 Segurança Implementada:**
 - ✅ Proteção XSS completa no frontend (SecurityUtils + DOMPurify)
@@ -34,6 +35,13 @@ Sistema web moderno para gerenciamento de cursos e arquivos educacionais com pai
 - ✅ Automação via cron configurada
 - ✅ Compressão e limpeza automática
 
+### **🔧 Correções Críticas (v2.1.0):**
+- ✅ Sintaxe Python corrigida no backend mock
+- ✅ Scripts adaptativos para diferentes ambientes Python
+- ✅ Detecção automática de python/python3/py
+- ✅ Repositório limpo e organizado
+- ✅ Documentação duplicada removida
+
 ## 🚀 **Início Rápido**
 
 ```bash
@@ -41,17 +49,25 @@ Sistema web moderno para gerenciamento de cursos e arquivos educacionais com pai
 git clone https://github.com/CarlosBertoldo/acervo-educacional.git
 cd acervo-educacional
 
-# 2. Configurar frontend
+# 2. Verificar ambiente Python (RECOMENDADO)
+./scripts/check-python.sh  # Linux/macOS
+scripts\check-python.bat   # Windows
+
+# 3. Configurar frontend
 cd frontend/acervo-educacional-frontend
 cp .env.example .env
 npm install
 
-# 3. Terminal 1 - Backend Mock
+# 4. Terminal 1 - Backend Mock (MÉTODO FÁCIL)
 cd ../../backend-mock
-pip3 install flask flask-cors pyjwt
-python3 server.py
+./start-backend.sh         # Linux/macOS
+start-backend.bat          # Windows
 
-# 4. Terminal 2 - Frontend
+# OU método manual:
+pip install -r requirements.txt
+python server.py           # ou python3 server.py
+
+# 5. Terminal 2 - Frontend
 cd ../frontend/acervo-educacional-frontend
 npm run dev
 
