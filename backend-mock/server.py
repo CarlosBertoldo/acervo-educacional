@@ -13,7 +13,11 @@ import sys
 from functools import wraps
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5175", "http://localhost:5174", "http://localhost:5176", "http://localhost:3000", "http://localhost:5004"])
+CORS(app, 
+     origins=["http://localhost:5175", "http://localhost:5174", "http://localhost:5176", "http://localhost:3000", "http://localhost:5004"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization", "Accept"],
+     supports_credentials=True)
 
 # Configurações
 SECRET_KEY = "acervo-educacional-secret-key"
@@ -153,11 +157,19 @@ cursos_mock = [
     }
 ]
 
-@app.route('/api/auth/login', methods=['POST'])
-@app.route('/api/v1/auth/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
+@app.route('/api/v1/auth/login', methods=['POST', 'OPTIONS'])
 @log_request
 def login():
     """Realizar login no sistema"""
+    # Responder a requisições OPTIONS (preflight)
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
+        
     try:
         data = request.get_json()
         
@@ -473,7 +485,7 @@ def swagger_ui():
     <body>
         <div class="container">
             <h1>🎓 Acervo Educacional API</h1>
-            <p><strong>Versão:</strong> 1.0.0 | <strong>Base URL:</strong> http://localhost:5005/api</p>
+            <p><strong>Versão:</strong> 1.0.0 | <strong>Base URL:</strong> http://localhost:5007/api</p>
             <p class="description">API para gerenciamento do sistema de acervo educacional da Ferreira Costa.</p>
             
             <h2>🔐 Autenticação</h2>
@@ -525,7 +537,7 @@ def swagger_ui():
             <h2>📝 Notas Importantes</h2>
             <ul>
                 <li><strong>Autenticação:</strong> Use Bearer token no header Authorization</li>
-                <li><strong>CORS:</strong> Configurado para localhost:5175, 5174, 3000, 5004</li>
+                <li><strong>CORS:</strong> Configurado para localhost:5175, 5174, 5176, 3000, 5004 com headers completos</li>
                 <li><strong>Cache:</strong> Estatísticas do dashboard são cacheadas por 2 minutos</li>
                 <li><strong>Paginação:</strong> Todas as listagens suportam paginação</li>
                 <li><strong>Logs:</strong> Todas as requisições são logadas em formato estruturado</li>
@@ -546,7 +558,7 @@ def swagger_ui():
 
 if __name__ == '__main__':
     print("🚀 Iniciando Backend Mock")
-    print("📍 Swagger UI: http://localhost:5005/swagger")
+    print("📍 Swagger UI: http://localhost:5007/swagger")
     print("🔐 Credenciais: admin@acervoeducacional.com / Admin@123")
     app.run(host='0.0.0.0', port=5007, debug=True)
 
