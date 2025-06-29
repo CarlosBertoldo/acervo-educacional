@@ -1,0 +1,22 @@
+total 124
+drwxrwxr-x 11 ubuntu ubuntu  4096 Jun 29 13:15 .
+drwxr-x--- 27 ubuntu ubuntu  4096 Jun 29 13:11 ..
+-rw-rw-r--  1 ubuntu ubuntu  1890 Jun 29 12:43 .env.example
+drwxrwxr-x  8 ubuntu ubuntu  4096 Jun 29 13:02 .git
+-rw-rw-r--  1 ubuntu ubuntu  5658 Jun 29 12:43 .gitignore
+-rw-rw-r--  1 ubuntu ubuntu  9886 Jun 29 12:43 .gitlab-ci.yml
+-rw-rw-r--  1 ubuntu ubuntu  2544 Jun 29 12:43 AcervoEducacional.sln
+-rw-rw-r--  1 ubuntu ubuntu 12114 Jun 29 13:01 CHANGELOG.md
+-rw-rw-r--  1 ubuntu ubuntu  8518 Jun 29 13:01 QUICK-START.md
+-rw-rw-r--  1 ubuntu ubuntu  9958 Jun 29 13:01 README.md
+-rw-rw-r--  1 ubuntu ubuntu  8124 Jun 29 12:43 SETUP-LOCAL-CORRIGIDO.md
+drwxrwxr-x  7 ubuntu ubuntu  4096 Jun 29 12:43 backend
+drwxrwxr-x  2 ubuntu ubuntu  4096 Jun 29 12:46 backend-mock
+-rw-rw-r--  1 ubuntu ubuntu  4670 Jun 29 12:43 docker-compose.yml
+drwxrwxr-x  2 ubuntu ubuntu  4096 Jun 29 12:43 docs
+-rw-rw-r--  1 ubuntu ubuntu     0 Jun 29 13:15 estrutura-antes-limpeza.txt
+drwxrwxr-x  5 ubuntu ubuntu  4096 Jun 29 13:00 frontend
+drwxrwxr-x  5 ubuntu ubuntu  4096 Jun 29 13:00 frontend-backup-antes-reorganizacao
+drwxrwxr-x  3 ubuntu ubuntu  4096 Jun 29 12:43 frontend-backup-original
+drwxrwxr-x  2 ubuntu ubuntu  4096 Jun 29 12:43 scripts
+drwxrwxr-x  6 ubuntu ubuntu  4096 Jun 29 12:43 src
