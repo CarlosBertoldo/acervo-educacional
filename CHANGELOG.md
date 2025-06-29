@@ -7,6 +7,56 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [3.1.0] - 2025-06-29
+
+### 🗂️ **REORGANIZAÇÃO DA ESTRUTURA DO FRONTEND**
+
+#### ✅ **Mudanças Estruturais:**
+
+**1. Simplificação da Estrutura de Diretórios**
+- Movidos arquivos de `frontend/acervo-educacional-frontend/` para `frontend/`
+- Removida subpasta desnecessária `acervo-educacional-frontend/`
+- Estrutura mais limpa e direta para desenvolvimento
+
+**2. Benefícios da Reorganização**
+- **Simplicidade:** Caminho mais direto `cd frontend` em vez de `cd frontend/acervo-educacional-frontend`
+- **Padrão:** Segue convenção padrão de projetos (frontend/, backend/, docs/)
+- **Manutenibilidade:** Estrutura mais intuitiva para novos desenvolvedores
+- **Scripts:** Comandos mais simples e diretos
+
+**3. Estrutura Final Otimizada**
+```
+acervo-educacional/
+├── frontend/              # Frontend React (diretamente)
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── ...
+├── backend-mock/          # Backend mock Python
+├── backend/               # Backend .NET
+├── docs/                  # Documentação
+└── scripts/               # Scripts de automação
+```
+
+**4. Atualizações Realizadas**
+- ✅ Documentação atualizada (README.md, QUICK-START.md)
+- ✅ Caminhos corrigidos em todos os guias
+- ✅ Backup da estrutura anterior mantido
+- ✅ Funcionalidade preservada 100%
+
+#### 🚀 **Comandos Atualizados:**
+```bash
+# Antes (v3.0.0)
+cd frontend/acervo-educacional-frontend
+npm run dev
+
+# Agora (v3.1.0)
+cd frontend
+npm run dev
+```
+
+---
+
 ## [3.0.0] - 2025-06-29
 
 ### 🎨 **RENOVAÇÃO COMPLETA DO FRONTEND**

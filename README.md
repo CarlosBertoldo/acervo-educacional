@@ -69,12 +69,12 @@ cd acervo-educacional
 scripts\check-python.bat   # Windows
 
 # 3. Configurar frontend
-cd frontend/acervo-educacional-frontend
+cd frontend
 cp .env.example .env
 npm install
 
 # 4. Terminal 1 - Backend Mock (MÉTODO FÁCIL)
-cd ../../backend-mock
+cd ../backend-mock
 ./start-backend.sh         # Linux/macOS
 start-backend.bat          # Windows
 
@@ -83,7 +83,7 @@ pip install -r requirements.txt
 python server.py           # ou python3 server.py
 
 # 5. Terminal 2 - Frontend
-cd ../frontend/acervo-educacional-frontend
+cd ../frontend
 npm run dev
 
 # 5. Acessar: http://localhost:5175

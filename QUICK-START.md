@@ -1,10 +1,35 @@
-# 🎓 Guia Rápido - Projeto Acervo Educacional v3.0.0
+# 🎓 Guia Rápido - Projeto Acervo Educacional v3.1.0
 
 > 📖 **Documentação completa:** [README.md](README.md) | **Solução de problemas:** [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
-## ✅ **PROJETO RENOVADO E 100% FUNCIONAL!**
+## ✅ **PROJETO RENOVADO COM ESTRUTURA OTIMIZADA!**
 
-O projeto React + Vite com backend .NET 8 foi **completamente renovado** com frontend limpo e está **100% funcional**. Frontend problemático substituído por versão estável e otimizada.
+O projeto React + Vite com backend .NET 8 foi **completamente renovado** com frontend limpo e **estrutura simplificada**. Agora com caminhos mais diretos e intuitivos!
+
+## 🗂️ **ESTRUTURA SIMPLIFICADA v3.1.0:**
+
+### **📁 Nova Organização:**
+```
+acervo-educacional/
+├── frontend/              # Frontend React (diretamente!)
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.js
+├── backend-mock/          # Backend mock Python
+├── backend/               # Backend .NET
+└── docs/                  # Documentação
+```
+
+### **🚀 Comandos Mais Simples:**
+```bash
+# Antes (v3.0.0)
+cd frontend/acervo-educacional-frontend
+npm run dev
+
+# Agora (v3.1.0) - Mais direto!
+cd frontend
+npm run dev
+```
 
 ## 🎨 **RENOVAÇÃO COMPLETA v3.0.0:**
 
