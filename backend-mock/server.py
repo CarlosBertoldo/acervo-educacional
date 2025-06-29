@@ -13,7 +13,7 @@ import sys
 from functools import wraps
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5175", "http://localhost:5174", "http://localhost:3000", "http://localhost:5004"])
+CORS(app, origins=["http://localhost:5175", "http://localhost:5174", "http://localhost:5176", "http://localhost:3000", "http://localhost:5004"])
 
 # Configurações
 SECRET_KEY = "acervo-educacional-secret-key"
@@ -548,5 +548,5 @@ if __name__ == '__main__':
     print("🚀 Iniciando Backend Mock")
     print("📍 Swagger UI: http://localhost:5005/swagger")
     print("🔐 Credenciais: admin@acervoeducacional.com / Admin@123")
-    app.run(host='0.0.0.0', port=5005, debug=True)
+    app.run(host='0.0.0.0', port=5007, debug=True)
 
