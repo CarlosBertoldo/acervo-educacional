@@ -56,6 +56,15 @@ O projeto React + Vite com backend .NET 8 foi **completamente otimizado** e est�
 - Python 3.8+ instalado
 - Git instalado
 
+**🔍 VERIFICAR PYTHON PRIMEIRO:**
+```bash
+# Linux/macOS
+./scripts/check-python.sh
+
+# Windows
+scripts\check-python.bat
+```
+
 ### **Passo 1: Clonar o Repositório**
 ```bash
 git clone https://github.com/CarlosBertoldo/acervo-educacional.git
@@ -82,8 +91,19 @@ cd ../..
 # Ir para o backend mock
 cd backend-mock
 
-# Instalar dependências Python
-pip3 install flask flask-cors pyjwt
+# MÉTODO FÁCIL (Recomendado):
+# Linux/macOS
+./start-backend.sh
+
+# Windows
+start-backend.bat
+
+# OU MÉTODO MANUAL:
+# Instalar dependências
+pip install -r requirements.txt  # ou pip3 install -r requirements.txt
+
+# Executar servidor (usar comando que funciona)
+python server.py   # ou python3 server.py ou py server.py
 ```
 
 ### **Passo 4: Executar o Projeto**

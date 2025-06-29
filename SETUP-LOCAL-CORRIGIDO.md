@@ -22,14 +22,34 @@
 - **Problema:** .env criado no sandbox mas não no repositório
 - **Solução:** .env.example atualizado com porta correta
 
+### **4. Problema PATH do Python** ✅ CORRIGIDO
+- **Problema:** `python` funciona mas `python3` não está no PATH
+- **Solução:** Scripts adaptativos e guia de correção
+- **Arquivos criados:**
+  - `scripts/check-python.sh` (Linux/macOS)
+  - `scripts/check-python.bat` (Windows)
+  - `backend-mock/start-backend.sh` (script adaptativo)
+  - `backend-mock/start-backend.bat` (script adaptativo Windows)
+
 ## 🚀 **INSTRUÇÕES CORRIGIDAS PARA SETUP LOCAL:**
 
 ### **Pré-requisitos Obrigatórios:**
+
+**🔍 PRIMEIRO: Verificar Python**
+```bash
+# Linux/macOS
+./scripts/check-python.sh
+
+# Windows
+scripts\check-python.bat
+```
+
+**📋 Versões mínimas:**
 ```bash
 # Verificar versões mínimas
 node --version    # Recomendado: v18+
 npm --version     # Recomendado: v9+
-python3 --version # Recomendado: v3.8+
+python --version  # OU python3 --version - Recomendado: v3.8+
 git --version     # Qualquer versão recente
 ```
 
@@ -44,17 +64,34 @@ git branch
 ```
 
 ### **Passo 2: Configurar Backend Mock**
+
+**🚀 MÉTODO FÁCIL (Recomendado):**
+```bash
+# Linux/macOS
+cd backend-mock
+./start-backend.sh
+
+# Windows
+cd backend-mock
+start-backend.bat
+```
+
+**🔧 MÉTODO MANUAL:**
 ```bash
 # Ir para diretório do backend mock
 cd backend-mock
 
 # Instalar dependências Python
+pip install -r requirements.txt
+# OU se tiver pip3:
 pip3 install -r requirements.txt
-# OU se preferir:
-pip3 install flask==3.0.0 flask-cors==4.0.0 pyjwt==2.8.0
 
-# Verificar se server.py existe
-ls -la server.py
+# Executar servidor (usar comando que funciona no seu sistema)
+python server.py
+# OU
+python3 server.py
+# OU (Windows)
+py server.py
 ```
 
 ### **Passo 3: Configurar Frontend**
@@ -120,6 +157,49 @@ curl http://localhost:5005/api/health
 - Verificar documentação da API
 
 ## 🔍 **TROUBLESHOOTING ESPECÍFICO:**
+
+### **Erro: "python3: command not found" (MAS python funciona)**
+
+**🐍 PROBLEMA COMUM:** `python` está no PATH mas `python3` não.
+
+**🪟 Windows - Soluções:**
+```cmd
+# Opção 1: Criar cópia do executável
+where python
+copy "C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python311\python.exe" "C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python311\python3.exe"
+
+# Opção 2: Usar py launcher
+py -3 server.py
+
+# Opção 3: Usar python diretamente
+python server.py
+```
+
+**🍎 macOS - Soluções:**
+```bash
+# Opção 1: Criar alias permanente
+echo 'alias python3="python"' >> ~/.zshrc
+source ~/.zshrc
+
+# Opção 2: Instalar Python 3 via Homebrew
+brew install python3
+
+# Opção 3: Criar symlink
+sudo ln -sf $(which python) /usr/local/bin/python3
+```
+
+**🐧 Linux - Soluções:**
+```bash
+# Opção 1: Instalar python3
+sudo apt install python3 python3-pip  # Ubuntu/Debian
+sudo yum install python3 python3-pip  # CentOS/RHEL
+
+# Opção 2: Criar symlink
+sudo ln -sf $(which python) /usr/local/bin/python3
+
+# Opção 3: Usar python diretamente
+python server.py
+```
 
 ### **Erro: "EADDRINUSE: address already in use :::5005"**
 ```bash
