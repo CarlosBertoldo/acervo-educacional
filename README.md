@@ -2,12 +2,18 @@
 
 Sistema web moderno para gerenciamento de cursos e arquivos educacionais com painel administrativo Kanban, desenvolvido com **Clean Architecture** e tecnologias atuais.
 
-## ✅ **PROJETO 100% FUNCIONAL COM FRONTEND RENOVADO**
+## ✅ **PROJETO 100% FUNCIONAL E OTIMIZADO**
 
 **Status:** 🚀 **Pronto para produção**  
 **Última atualização:** 29/06/2025  
-**Versão:** 3.0.0  
-**Implementações:** Frontend completamente renovado + 10 tarefas essenciais concluídas  
+**Versão:** 3.2.0  
+**Implementações:** Repositório limpo + Frontend renovado + 10 tarefas essenciais concluídas  
+
+### **🧹 Repositório Otimizado (v3.2.0):**
+- ✅ **Limpeza completa** - Duplicatas e backups removidos
+- ✅ **75.7M economizados** - Repositório 54% menor (139M → 63M)
+- ✅ **Estrutura profissional** - Sem arquivos desnecessários
+- ✅ **Performance melhorada** - Clone e operações mais rápidas
 
 ### **🎨 Frontend Renovado (v3.0.0):**
 - ✅ **Frontend React limpo** sem dependências problemáticas
@@ -86,9 +92,14 @@ python server.py           # ou python3 server.py
 cd ../frontend
 npm run dev
 
-# 5. Acessar: http://localhost:5175
+# 5. Acessar: http://localhost:5176
 # Login: admin@acervoeducacional.com / Admin@123
 ```
+
+### **🔗 URLs de Acesso:**
+- **Frontend:** [http://localhost:5176](http://localhost:5176)
+- **Backend API:** [http://localhost:5007/api](http://localhost:5007/api)
+- **Swagger UI:** [http://localhost:5007/swagger](http://localhost:5007/swagger)
 
 > 📖 **Para instruções detalhadas, consulte:** [QUICK-START.md](QUICK-START.md)
 

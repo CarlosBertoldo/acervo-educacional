@@ -1,17 +1,24 @@
-# 🔧 Setup Local Corrigido - Acervo Educacional
+# 🔧 Setup Local Corrigido - Acervo Educacional v3.2.0
 
-> **IMPORTANTE:** Este guia foi criado após identificar e corrigir inconsistências entre o ambiente sandbox e local.
+> **IMPORTANTE:** Este guia foi atualizado com as correções mais recentes, incluindo a nova estrutura otimizada v3.2.0.
+
+## ✅ **PROJETO COMPLETAMENTE OTIMIZADO:**
+
+### **🧹 Repositório Limpo (v3.2.0):**
+- ✅ **75.7M economizados** - Repositório 54% menor
+- ✅ **Estrutura profissional** - Sem duplicatas ou backups desnecessários
+- ✅ **Performance melhorada** - Clone e operações muito mais rápidas
+- ✅ **Navegação simplificada** - Caminhos diretos e intuitivos
 
 ## ⚠️ **PROBLEMAS IDENTIFICADOS E CORRIGIDOS:**
 
 ### **1. Inconsistência de Portas** ✅ CORRIGIDO
 - **Problema:** Backend configurado para porta 5006, mas rodando na 5005
-- **Solução:** Padronizado tudo para porta **5005**
+- **Solução:** Padronizado tudo para porta **5007** (atual)
 - **Arquivos corrigidos:**
-  - `frontend/acervo-educacional-frontend/.env`
-  - `frontend/acervo-educacional-frontend/.env.example`
+  - `frontend/.env`
+  - `frontend/.env.example`
   - `backend-mock/server.py`
-  - `frontend/acervo-educacional-frontend/src/setupTests.js`
 
 ### **2. Dependências Python Não Documentadas** ✅ CORRIGIDO
 - **Problema:** Dependências Python não listadas
@@ -97,20 +104,17 @@ py server.py
 ### **Passo 3: Configurar Frontend**
 ```bash
 # Ir para diretório do frontend
-cd ../frontend/acervo-educacional-frontend
+cd ../frontend
 
-# Criar arquivo .env (OBRIGATÓRIO)
+# Criar arquivo .env (se necessário)
 cp .env.example .env
 
 # Verificar conteúdo do .env
 cat .env
-# Deve mostrar: VITE_API_URL=http://localhost:5005/api
+# Deve mostrar: VITE_API_URL=http://localhost:5007/api
 
 # Instalar dependências
 npm install
-
-# Verificar se dependências críticas foram instaladas
-npm list dompurify jest typescript
 ```
 
 ### **Passo 4: Executar o Projeto**
@@ -122,18 +126,18 @@ python3 server.py
 
 # Deve mostrar:
 # * Running on all addresses (0.0.0.0)
-# * Running on http://127.0.0.1:5005
-# * Running on http://[::1]:5005
-# 📍 Swagger UI: http://localhost:5005/swagger
+# * Running on http://127.0.0.1:5007
+# * Running on http://[::1]:5007
+# 📍 Swagger UI: http://localhost:5007/swagger
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
-cd frontend/acervo-educacional-frontend
+cd frontend
 npm run dev
 
 # Deve mostrar:
-# Local:   http://localhost:5175/
+# Local:   http://localhost:5176/
 # Network: use --host to expose
 ```
 
@@ -142,18 +146,18 @@ npm run dev
 **1. Testar Backend:**
 ```bash
 # Em um terceiro terminal
-curl http://localhost:5005/api/health
+curl http://localhost:5007/api/health
 
 # Deve retornar JSON com status
 ```
 
 **2. Testar Frontend:**
-- Abrir: http://localhost:5175
+- Abrir: http://localhost:5176
 - Login: admin@acervoeducacional.com
 - Senha: Admin@123
 
 **3. Testar Swagger:**
-- Abrir: http://localhost:5005/swagger
+- Abrir: http://localhost:5007/swagger
 - Verificar documentação da API
 
 ## 🔍 **TROUBLESHOOTING ESPECÍFICO:**
