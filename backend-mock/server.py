@@ -13,6 +13,7 @@ import sys
 from functools import wraps
 
 app = Flask(__name__)
+# CORS seguro e funcional
 CORS(app, 
      origins=["http://localhost:5175", "http://localhost:5174", "http://localhost:5176", "http://localhost:3000", "http://localhost:5004"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -508,7 +509,7 @@ def swagger_ui():
             <h2>📚 Cursos</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/cursos</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Listar todos os cursos</div>
+                <div class="description">Listar todos os cursos com paginação</div>
             </div>
             
             <div class="endpoint">
@@ -519,19 +520,26 @@ def swagger_ui():
             <h2>👥 Usuários</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/usuarios</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Listar usuários do sistema</div>
+                <div class="description">Listar todos os usuários</div>
             </div>
             
-            <h2>🔧 Sistema</h2>
+            <h2>🔍 Sistema</h2>
             <div class="endpoint">
                 <span class="method get">GET</span> <strong>/api/health</strong> <span class="status">✅ Ativo</span>
-                <div class="description">Verificar saúde da API</div>
+                <div class="description">Health check com informações do sistema</div>
             </div>
             
             <div class="credentials">
-                <h3>🔑 Credenciais de Teste:</h3>
-                <p>📧 <strong>Email:</strong> admin@acervoeducacional.com</p>
-                <p>🔒 <strong>Senha:</strong> Admin@123</p>
+                <h3>🔑 Credenciais de Teste</h3>
+                <p><strong>Email:</strong> admin@acervoeducacional.com</p>
+                <p><strong>Senha:</strong> Admin@123</p>
+            </div>
+            
+            <div class="links">
+                <h3>🔗 Links Úteis</h3>
+                <a href="/api/health" target="_blank">Health Check</a>
+                <a href="/api/dashboard/stats" target="_blank">Estatísticas</a>
+                <a href="/api/cursos" target="_blank">Lista de Cursos</a>
             </div>
             
             <h2>📝 Notas Importantes</h2>
@@ -543,13 +551,16 @@ def swagger_ui():
                 <li><strong>Logs:</strong> Todas as requisições são logadas em formato estruturado</li>
             </ul>
             
-            <div class="links">
-                <h3>🔗 Links Úteis:</h3>
-                <a href="/api/health" target="_blank">Health Check</a>
-                <a href="/api/dashboard/stats" target="_blank">Dashboard Stats</a>
-                <a href="/api/cursos" target="_blank">Lista de Cursos</a>
-                <a href="/api/usuarios" target="_blank">Lista de Usuários</a>
-            </div>
+            <h2>🚀 Funcionalidades Implementadas</h2>
+            <ul>
+                <li>✅ <strong>Sistema de Cache:</strong> Cache em memória para otimização</li>
+                <li>✅ <strong>Logs Estruturados:</strong> Logging JSON para todas as operações</li>
+                <li>✅ <strong>Paginação:</strong> Suporte completo a paginação nas listagens</li>
+                <li>✅ <strong>Health Checks:</strong> Monitoramento de saúde do sistema</li>
+                <li>✅ <strong>CORS Configurado:</strong> Suporte a múltiplas origens</li>
+                <li>✅ <strong>JWT Authentication:</strong> Tokens seguros para autenticação</li>
+                <li>✅ <strong>Versionamento de API:</strong> Suporte a /v1/ para compatibilidade</li>
+            </ul>
         </div>
     </body>
     </html>
